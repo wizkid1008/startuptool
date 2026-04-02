@@ -1,0 +1,307 @@
+{
+  "segments": {
+    "customer": {
+      "name": "Customer",
+      "avg_maturity": null,
+      "avg_impact": null,
+      "criticality": null,
+      "confidence": 0.26666666666666666,
+      "data_completeness": 0.0,
+      "sub_scores": {
+        "Products, Markets & Channels": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Marketing and Branding": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Sales and Pricing": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Customer Experience": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    },
+    "people": {
+      "name": "People",
+      "avg_maturity": 3.0,
+      "avg_impact": 1.0,
+      "criticality": 3.0,
+      "confidence": 0.38666666666666666,
+      "data_completeness": 0.2,
+      "sub_scores": {
+        "Capability": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Performance Management": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Innovation": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Leadership": {
+          "maturity": 3,
+          "impact": 1,
+          "confidence": 0.65,
+          "sources": [
+            "team_data"
+          ],
+          "reasoning": "Based on team_data: 10 team members"
+        },
+        "Rewards": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    },
+    "operations": {
+      "name": "Operations",
+      "avg_maturity": null,
+      "avg_impact": null,
+      "criticality": null,
+      "confidence": 0.26666666666666666,
+      "data_completeness": 0.0,
+      "sub_scores": {
+        "Sourcing & Supply Chain": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Internal Operations & Assets": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Distribution & Logistics": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Operations Strategy": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Operational Excellence": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    },
+    "finance": {
+      "name": "Finance",
+      "avg_maturity": 3.0,
+      "avg_impact": 1.6666666666666667,
+      "criticality": 5.0,
+      "confidence": 0.6266666666666667,
+      "data_completeness": 0.6,
+      "sub_scores": {
+        "Finance Process & Control": {
+          "maturity": 3,
+          "impact": 1,
+          "confidence": 0.65,
+          "sources": [
+            "financials"
+          ],
+          "reasoning": "Based on financials: Funding: $1000000"
+        },
+        "Stakeholder Management": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "People & Organization": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Data and Technology": {
+          "maturity": 3,
+          "impact": 2,
+          "confidence": 0.65,
+          "sources": [
+            "description"
+          ],
+          "reasoning": "Based on description: analytics"
+        },
+        "Funding Growth": {
+          "maturity": 3,
+          "impact": 2,
+          "confidence": 0.65,
+          "sources": [
+            "financials"
+          ],
+          "reasoning": "Based on financials: Funding: $1000000"
+        }
+      }
+    },
+    "analytics": {
+      "name": "Analytics",
+      "avg_maturity": 3.0,
+      "avg_impact": 2.0,
+      "criticality": 6.0,
+      "confidence": 0.4666666666666667,
+      "data_completeness": 0.3333333333333333,
+      "sub_scores": {
+        "Digital Enterprise": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Data and Analytics": {
+          "maturity": 3,
+          "impact": 2,
+          "confidence": 0.65,
+          "sources": [
+            "description"
+          ],
+          "reasoning": "Based on description: analytics"
+        },
+        "Security and Privacy": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    },
+    "risk": {
+      "name": "Risk",
+      "avg_maturity": null,
+      "avg_impact": null,
+      "criticality": null,
+      "confidence": 0.26666666666666666,
+      "data_completeness": 0.0,
+      "sub_scores": {
+        "Governance": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Risk Management": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Policy & Compliance": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Stakeholder Management": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    },
+    "impact": {
+      "name": "Impact",
+      "avg_maturity": null,
+      "avg_impact": null,
+      "criticality": null,
+      "confidence": 0.26666666666666666,
+      "data_completeness": 0.0,
+      "sub_scores": {
+        "Impact Metrics": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Technology": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Data and Analytics": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        },
+        "Design": {
+          "maturity": null,
+          "impact": null,
+          "confidence": 0.0,
+          "sources": [],
+          "reasoning": "No data available for assessment"
+        }
+      }
+    }
+  },
+  "summary": {
+    "overall_maturity": 3.0,
+    "overall_impact": 1.5555555555555556,
+    "overall_confidence": 0.49333333333333335,
+    "highest_criticality": [
+      "Analytics",
+      6.0
+    ],
+    "lowest_maturity": [
+      "People",
+      3.0
+    ]
+  }
+}
