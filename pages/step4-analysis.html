@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 4: Analysis</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/analysis.css">
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="eyebrow">SMEAT Framework</div>
+    <h1>Enterprise Viability Assessment</h1>
+  </div>
+
+  <div id="stepIndicator"></div>
+
+  <div class="card">
+    <div class="card-title">✦ Strategic Analysis <span class="ai-badge">Claude Powered</span></div>
+    <div class="card-sub">Generate an AI-driven strategic assessment with market benchmarking for <strong id="s4-company">the company</strong>.</div>
+
+    <div class="type-row">
+      <button class="type-btn active" onclick="selType('full',this)">Full Assessment</button>
+      <button class="type-btn" onclick="selType('strengths',this)">Strengths &amp; Gaps</button>
+      <button class="type-btn" onclick="selType('market',this)">Market Benchmarking</button>
+      <button class="type-btn" onclick="selType('roadmap',this)">Growth Roadmap</button>
+      <button class="type-btn" onclick="selType('risk',this)">Risk Profile</button>
+    </div>
+
+    <div class="btn-row" style="margin-top:0;margin-bottom:18px;">
+      <button class="btn-primary" id="runBtn" onclick="runAnalysis()">✦ Generate Analysis</button>
+      <button class="btn-secondary" onclick="Router.goToStep(3)">← Back to Scores</button>
+      <button class="btn-secondary" onclick="Router.restart()">⟲ Start Over</button>
+    </div>
+
+    <div class="ai-out" id="aiOut">
+      <div style="color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;text-align:center;">
+        <div style="font-size:26px;opacity:.3;">✦</div>
+        <div>Select an analysis type above, then click Generate Analysis.</div>
+        <div style="font-size:12px;margin-top:10px;">Note: Full API integration requires a backend endpoint for security.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/storage.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/navigation.js"></script>
+<script src="../assets/js/api.js"></script>
+
+<script>
+let selAnalysisType = 'full';
+
+function ready(fn) {
+  if (document.readyState !== 'loading') fn();
+  else document.addEventListener('DOMContentLoaded', fn);
+}
+
+ready(() => {
+  initPage(4);
+  const profile = Storage.getProfile();
+  $('s4-company').textContent = profile.companyName || 'the company';
+});
+
+function selType(type, el) {
+  selAnalysisType = type;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function runAnalysis() {
+  const btn = $('runBtn');
+  const out = $('aiOut');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;animation:spin .8s linear infinite">⟳</span> Generating...';
+  out.innerHTML = '<span style="color:var(--muted);font-size:13px">🔍 Generating analysis — this would stream from Claude...</span>';
+
+  try {
+    // This would call the backend endpoint
+    const profile = Storage.getProfile();
+    const review = Storage.getReview();
+
+    const analysisPrompt = buildAnalysisPrompt(profile, review.scores);
+    out.innerHTML = fmtText(analysisPrompt);
+
+  } catch (err) {
+    out.innerHTML = `<span style="color:var(--danger)">Error: ${err.message}</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✦ Generate Analysis';
+  }
+}
+
+function buildAnalysisPrompt(profile, scores) {
+  const { companyName, industry, stage, geography, description } = profile;
+
+  const prompts = {
+    full: `Senior strategy consultant assessment for ${companyName}. Use web search for market context.
+
+1. **Executive Summary** — 2-3 sentences on overall viability
+2. **Key Strengths** (top 2-3) — why they're ahead
+3. **Critical Gaps** — highest criticality + low maturity
+4. **Market Context** vs sector peers
+5. **Strategic Priorities** — 3-5 specific, actionable next steps
+6. **Viability Rating** — High/Med-High/Med/Med-Low/Low + justification`,
+
+    strengths: `Strengths & gaps analysis:
+
+1. **Top Strengths** (2-4) — strong maturity + high impact, WHY competitive
+2. **Critical Gaps** (2-4) — weak maturity + high impact, quantify risk
+3. **Hidden Risks** — low-rated but actually dangerous given stage/sector
+4. **Quick Wins** — 2-3 fixable in 30-90 days`,
+
+    market: `Market benchmarking for ${companyName}:
+
+1. **Sector Benchmarks** — typical maturity for ${stage} companies in ${industry}
+2. **Competitive Positioning** — relative to peers
+3. **Industry Insights** — what leaders excel at
+4. **Market Opportunity** from these score patterns
+5. **Competitive Threats** from these gaps`,
+
+    roadmap: `Growth roadmap for next 18 months:
+
+**Phase 1 (0-3 months): Stabilize**
+- Urgent gaps to address
+- Specific actions and metrics
+
+**Phase 2 (3-9 months): Strengthen**
+- Priority investments
+- Expected outcomes
+
+**Phase 3 (9-18 months): Scale**
+- Capabilities needed
+- Key milestones
+
+Key Enablers & Blockers to watch`,
+
+    risk: `Risk profile assessment:
+
+1. **Top 3 Operational Risks** — production, delivery, ops stability
+2. **Financial Risk** — runway, burn, unit economics
+3. **People & Capability Risk** — talent gaps, retention
+4. **Market & Customer Risk** — demand, retention, competition
+5. **Compliance & Governance Risk** — legal, regulatory, board
+6. **Overall Risk Rating** — Critical/High/Medium/Low
+7. **Top 3 Mitigation Quick Wins** — 30-90 day fixes`,
+  };
+
+  return `## ${companyName} — SMEAT Analysis (${selAnalysisType.toUpperCase()})
+
+**Company:** ${companyName}
+**Industry:** ${industry || 'Unspecified'}
+**Stage:** ${stage || 'Unspecified'}
+**Geography:** ${geography || 'Unspecified'}
+**Description:** ${description || 'No description provided'}
+
+---
+
+${prompts[selAnalysisType] || prompts.full}
+
+---
+
+*This analysis is generated based on your SMEAT scores. For a full AI analysis, connect a backend service with your Anthropic API key.*`;
+}
+
+function fmtText(t) {
+  return t
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^#{1,3} (.+)$/gm, '<h3>$1</h3>')
+    .replace(/`([^`]+)`/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+</script>
+</body>
+</html>

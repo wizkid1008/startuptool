@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 2: AI Research</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/analysis.css">
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="eyebrow">SMEAT Framework</div>
+    <h1>Enterprise Viability Assessment</h1>
+  </div>
+
+  <div id="stepIndicator"></div>
+
+  <div class="card">
+    <div class="card-title">⚡ AI Research &amp; Auto-Score <span class="ai-badge">Claude + Web Search</span></div>
+    <div class="card-sub">Claude will search for public information about <strong id="s2-company">the company</strong> and score all 7 SMEAT segments with full reasoning. Review and adjust scores in the next step.</div>
+    <div class="profile-bar" id="profileBar"></div>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn-ai" id="autoScoreBtn" onclick="runAutoScore()">⚡ Research &amp; Auto-Score</button>
+      <button class="btn-secondary" onclick="Router.goToStep(3)">Skip — I'll score manually →</button>
+    </div>
+    <div class="progress-box" id="autoProgress">
+      <div class="p-step" id="step-docs"><span class="p-icon">📄</span><div><div>Reading uploaded documents</div><div class="p-sub" id="step-docs-sub"></div></div></div>
+      <div class="p-step" id="step-search"><span class="p-icon">🔍</span><div><div>Searching public corporate information</div><div class="p-sub" id="step-search-sub"></div></div></div>
+      <div class="p-step" id="step-analyze"><span class="p-icon">🧠</span><div><div>Analyzing across SMEAT dimensions</div><div class="p-sub" id="step-analyze-sub"></div></div></div>
+      <div class="p-step" id="step-score"><span class="p-icon">📊</span><div><div>Generating scores with reasoning</div><div class="p-sub" id="step-score-sub"></div></div></div>
+    </div>
+    <div class="stream-preview" id="streamPreview"></div>
+    <div class="r-grid" id="reasoningGrid"></div>
+    <div class="btn-row" id="s2-next" style="display:none">
+      <button class="btn-success" onclick="applyAndContinue()">✓ Apply Scores &amp; Continue →</button>
+      <button class="btn-secondary" onclick="Router.goToStep(3)">Continue without applying</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/storage.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/navigation.js"></script>
+<script src="../assets/js/api.js"></script>
+
+<script>
+let aiResults = null;
+
+function ready(fn) {
+  if (document.readyState !== 'loading') fn();
+  else document.addEventListener('DOMContentLoaded', fn);
+}
+
+ready(() => {
+  initPage(2);
+  const profile = Storage.getProfile();
+  $('s2-company').textContent = profile.companyName || 'the company';
+  renderProfileBar();
+});
+
+function renderProfileBar() {
+  const profile = Storage.getProfile();
+  const parts = [
+    profile.industry && `<span><strong>Industry:</strong> ${profile.industry}</span>`,
+    profile.stage && `<span><strong>Stage:</strong> ${profile.stage}</span>`,
+    profile.geography && `<span><strong>Geography:</strong> ${profile.geography}</span>`,
+    profile.size && `<span><strong>Size:</strong> ${profile.size}</span>`,
+    profile.website && `<span><strong>URL:</strong> <a href="${profile.website}" target="_blank">${profile.website}</a></span>`,
+    profile.documents && profile.documents.length && `<span><strong>Documents:</strong> ${profile.documents.length} uploaded</span>`,
+  ].filter(Boolean);
+  $('profileBar').innerHTML = parts.length
+    ? parts.join('<span style="opacity:.3">·</span>')
+    : `<span style="font-style:italic">No additional details provided</span>`;
+}
+
+function setPS(id, status, sub = '') {
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove('active', 'done');
+  if (status) el.classList.add(status);
+  const s = el.querySelector('.p-sub');
+  if (s) s.textContent = sub;
+}
+
+async function runAutoScore() {
+  const btn = $('autoScoreBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;animation:spin .8s linear infinite">⟳</span> Researching...';
+  $('autoProgress').classList.add('visible');
+  $('reasoningGrid').classList.remove('visible');
+  $('reasoningGrid').innerHTML = '';
+  $('s2-next').style.display = 'none';
+
+  const preview = $('streamPreview');
+  preview.style.display = 'block';
+  preview.textContent = '';
+
+  const profile = Storage.getProfile();
+  const docs = profile.documents || [];
+
+  setPS('step-docs', docs.length ? 'active' : 'done', docs.length ? `Processing ${docs.length} file(s)...` : 'No documents uploaded');
+  setPS('step-search', '');
+  setPS('step-analyze', '');
+  setPS('step-score', '');
+
+  try {
+    // Note: API calls should come from a backend. This is a placeholder.
+    // For production, implement a backend endpoint that securely handles Claude API calls
+
+    alert('API integration requires a secure backend. This is a placeholder for the AI Research feature.\n\nTo implement:\n1. Create a backend endpoint that calls Claude API\n2. Pass company data and documents to the endpoint\n3. Stream results back to the frontend\n4. Parse and display scores');
+
+    setPS('step-search', 'done', 'Info retrieved');
+    setPS('step-analyze', 'done', 'Analysis complete');
+    setPS('step-score', 'done', 'Scores ready — review below');
+    $('s2-next').style.display = 'flex';
+
+  } catch (err) {
+    preview.textContent = '⚠ ' + err.message;
+    setPS('step-score', 'active', '⚠ ' + err.message);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Research &amp; Auto-Score';
+  }
+}
+
+function applyAndContinue() {
+  if (aiResults) {
+    const research = {
+      aiResults: aiResults,
+      autoScored: true,
+      scoredAt: Date.now(),
+    };
+    Storage.saveResearch(research);
+  }
+  Router.goToStep(3);
+}
+</script>
+</body>
+</html>

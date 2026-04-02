@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 3: Review & Edit</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/analysis.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="eyebrow">SMEAT Framework</div>
+    <h1>Enterprise Viability Assessment</h1>
+  </div>
+
+  <div id="stepIndicator"></div>
+
+  <div class="card">
+    <div class="card-title">✏️ Review &amp; Edit Scores</div>
+    <div class="card-sub">Adjust any AI-scored values or fill in manually. <span style="color:var(--accent2)">Purple highlight</span> = AI-scored (editable). Maturity: how developed? Impact: how critical to the business?</div>
+    <div class="seg-grid" id="segGrid"></div>
+
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:22px;">
+      <div style="font-family:'DM Serif Display',serif;font-size:17px;margin-bottom:14px;">📊 Score Overview</div>
+      <div class="legend">
+        <div class="lg-item"><div class="lg-dot" style="background:var(--s1)"></div>1 – Advanced</div>
+        <div class="lg-item"><div class="lg-dot" style="background:var(--s2)"></div>2 – Developing</div>
+        <div class="lg-item"><div class="lg-dot" style="background:var(--s3)"></div>3 – Emerging</div>
+        <div class="lg-item"><div class="lg-dot" style="background:var(--s4)"></div>4 – Nascent</div>
+      </div>
+      <div class="scores-grid" id="scoresGrid"></div>
+      <div class="chart-cont">
+        <canvas id="radarChart"></canvas>
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="continueToAnalysis()">Continue to Analysis →</button>
+      <button class="btn-secondary" onclick="Router.goToStep(2)">← Back</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/storage.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/navigation.js"></script>
+
+<script>
+const ST = {};
+let charts = {};
+let segBuilt = false;
+
+function ready(fn) {
+  if (document.readyState !== 'loading') fn();
+  else document.addEventListener('DOMContentLoaded', fn);
+}
+
+ready(() => {
+  initPage(3);
+  loadScores();
+  buildSegments();
+  updateScores();
+});
+
+function loadScores() {
+  const review = Storage.getReview();
+  const research = Storage.getResearch();
+
+  // Merge research and review scores
+  if (research.aiResults?.segments) {
+    SEGS.forEach(seg => {
+      const sd = research.aiResults.segments[seg.id];
+      if (sd) {
+        sd.subs.forEach((sub, i) => {
+          const k = `${seg.id}_${i}`;
+          if (!ST[k]) ST[k] = {};
+          ST[k].maturity = sub.maturity;
+          ST[k].impact = sub.impact;
+        });
+      }
+    });
+  }
+
+  // Override with review adjustments
+  if (review.scores) {
+    Object.assign(ST, review.scores);
+  }
+}
+
+function getV(segId, i, type) {
+  return ST[`${segId}_${i}`]?.[type] ?? null;
+}
+
+function setV(segId, i, type, val) {
+  const k = `${segId}_${i}`;
+  if (!ST[k]) ST[k] = {};
+  ST[k][type] = val ? parseInt(val) : null;
+  updateScores();
+}
+
+function buildSegments() {
+  if (segBuilt) return;
+  const grid = $('segGrid');
+  grid.innerHTML = '';
+
+  SEGS.forEach(seg => {
+    const card = document.createElement('div');
+    card.className = 'seg-card';
+
+    const subs = seg.subs.map((sub, i) => {
+      const m = getV(seg.id, i, 'maturity');
+      const imp = getV(seg.id, i, 'impact');
+      const mSel = [1, 2, 3, 4].map(n => `<option value="${n}"${m === n ? ' selected' : ''}>${n}</option>`).join('');
+      const iSel = [1, 2, 3, 4].map(n => `<option value="${n}"${imp === n ? ' selected' : ''}>${n}</option>`).join('');
+
+      return `<div class="sub-cat">
+        <span class="sub-lbl">${sub}</span>
+        <div class="rating-row">
+          <div class="rf"><span>Maturity</span>
+            <select class="rsel" onchange="setV('${seg.id}',${i},'maturity',this.value)">
+              <option value="">—</option>${mSel}</select></div>
+          <div class="rf"><span>Impact</span>
+            <select class="rsel" onchange="setV('${seg.id}',${i},'impact',this.value)">
+              <option value="">—</option>${iSel}</select></div>
+        </div></div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="seg-hd" style="border-top:3px solid ${seg.color}">
+        <div class="seg-icon" style="background:${seg.color}22">${seg.icon}</div>
+        <h3>${seg.label}</h3>
+        <div class="seg-badge" id="badge-${seg.id}">—</div>
+      </div>
+      <div class="seg-body">${subs}</div>`;
+    grid.appendChild(card);
+  });
+
+  segBuilt = true;
+}
+
+function segAvg(id, type) {
+  const seg = SEGS.find(s => s.id === id);
+  const vals = seg.subs.map((_, i) => getV(id, i, type)).filter(v => v !== null);
+  return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+}
+
+function segCrit(id) {
+  const seg = SEGS.find(s => s.id === id);
+  const sc = seg.subs.map((_, i) => {
+    const m = getV(id, i, 'maturity');
+    const imp = getV(id, i, 'impact');
+    return m && imp ? m * imp : null;
+  }).filter(v => v !== null);
+  return sc.length ? sc.reduce((a, b) => a + b, 0) / sc.length : null;
+}
+
+function scCls(v) {
+  if (v === null) return '';
+  if (v <= 1.5) return 'c1';
+  if (v <= 2.5) return 'c2';
+  if (v <= 3.5) return 'c3';
+  return 'c4';
+}
+
+function updateScores() {
+  SEGS.forEach(seg => {
+    const b = $(`badge-${seg.id}`);
+    if (b) {
+      const a = segAvg(seg.id, 'maturity');
+      b.textContent = a !== null ? a.toFixed(1) : '—';
+    }
+  });
+
+  const sg = $('scoresGrid');
+  if (sg) {
+    sg.innerHTML = SEGS.map(seg => {
+      const a = segAvg(seg.id, 'maturity');
+      const c = segCrit(seg.id);
+      return `<div class="score-item">
+        <span class="sc-lbl">${seg.icon} ${seg.label}</span>
+        <div class="sc-val ${scCls(a)}">${a !== null ? a.toFixed(1) : '—'}</div>
+        ${c !== null ? `<div style="font-size:10px;color:var(--muted);margin-top:3px;font-family:'DM Mono',monospace">crit ${c.toFixed(0)}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  updateCharts();
+}
+
+function updateCharts() {
+  const labels = SEGS.map(s => s.label);
+  const matD = SEGS.map(s => segAvg(s.id, 'maturity') ?? 0);
+  const impD = SEGS.map(s => segAvg(s.id, 'impact') ?? 0);
+  const cols = SEGS.map(s => s.color);
+
+  if (charts.r) charts.r.destroy();
+  charts.r = new Chart($('radarChart').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Maturity',
+          data: matD,
+          borderColor: '#6ee7b7',
+          backgroundColor: 'rgba(110,231,183,.12)',
+          pointBackgroundColor: '#6ee7b7',
+          borderWidth: 2,
+          pointRadius: 4,
+        },
+        {
+          label: 'Impact',
+          data: impD,
+          borderColor: '#818cf8',
+          backgroundColor: 'rgba(129,140,248,.10)',
+          pointBackgroundColor: '#818cf8',
+          borderWidth: 2,
+          pointRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 4,
+          ticks: { stepSize: 1, color: '#7a7f96', backdropColor: 'transparent' },
+          grid: { color: '#2a2d38' },
+          pointLabels: { color: '#e8eaf0' },
+          angleLines: { color: '#2a2d38' },
+        },
+      },
+      plugins: { legend: { labels: { color: '#7a7f96' } } },
+    },
+  });
+
+  if (charts.b) charts.b.destroy();
+  charts.b = new Chart($('barChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Criticality Score',
+          data: SEGS.map(s => segCrit(s.id) ?? 0),
+          backgroundColor: cols.map(c => c + 'bb'),
+          borderColor: cols,
+          borderWidth: 1,
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      scales: {
+        x: {
+          min: 0,
+          max: 16,
+          grid: { color: '#2a2d38' },
+          ticks: { color: '#7a7f96' },
+        },
+        y: { grid: { color: '#2a2d38' }, ticks: { color: '#e8eaf0' } },
+      },
+      plugins: { legend: { display: false } },
+    },
+  });
+}
+
+function continueToAnalysis() {
+  Storage.saveReview({ scores: ST });
+  Router.goToStep(4);
+}
+</script>
+</body>
+</html>

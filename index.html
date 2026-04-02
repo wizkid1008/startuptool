@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Viability Assessment</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="eyebrow">SMEAT Framework</div>
+    <h1>Enterprise Viability Assessment</h1>
+    <p>AI-powered assessment across 7 strategic dimensions — from company profile to strategic insight.</p>
+  </div>
+
+  <div class="card" style="text-align: center;">
+    <div class="card-title" style="justify-content: center; margin-bottom: 20px;">Welcome</div>
+    <p style="font-size: 15px; color: var(--muted); margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
+      This assessment evaluates your company across 7 SMEAT dimensions (Customer, People, Operations, Finance, Analytics, Risk, Impact). Follow the 4-step process to get AI-powered insights and strategic recommendations.
+    </p>
+
+    <div style="background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px; text-align: left;">
+      <div style="font-weight: 600; margin-bottom: 15px; color: var(--text);">The 4-Step Process:</div>
+      <ol style="list-style: none; counter-reset: step; padding: 0;">
+        <li style="margin-bottom: 10px; padding-left: 30px; position: relative;">
+          <span style="position: absolute; left: 0; font-weight: 600; color: var(--accent2);">1</span>
+          <strong>Company Profile</strong> — Enter company details and upload documents
+        </li>
+        <li style="margin-bottom: 10px; padding-left: 30px; position: relative;">
+          <span style="position: absolute; left: 0; font-weight: 600; color: var(--accent2);">2</span>
+          <strong>AI Research</strong> — Claude analyzes your company and auto-scores
+        </li>
+        <li style="margin-bottom: 10px; padding-left: 30px; position: relative;">
+          <span style="position: absolute; left: 0; font-weight: 600; color: var(--accent2);">3</span>
+          <strong>Review & Edit</strong> — Adjust scores and view analytics
+        </li>
+        <li style="padding-left: 30px; position: relative;">
+          <span style="position: absolute; left: 0; font-weight: 600; color: var(--accent2);">4</span>
+          <strong>Strategic Analysis</strong> — Get AI-powered insights and recommendations
+        </li>
+      </ol>
+    </div>
+
+    <div class="btn-row" style="justify-content: center;">
+      <button class="btn-primary" onclick="startAssessment()" style="padding: 14px 40px; font-size: 15px;">Start Assessment →</button>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+      <p style="font-size: 12px; color: var(--muted);">All data is stored locally on your device. No information is sent to external servers except when using the AI Research feature with your explicit permission.</p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/navigation.js"></script>
+<script>
+function startAssessment() {
+  Router.goToStep(1);
+}
+</script>
+</body>
+</html>

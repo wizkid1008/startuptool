@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 1: Company Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="eyebrow">SMEAT Framework</div>
+    <h1>Enterprise Viability Assessment</h1>
+  </div>
+
+  <div id="stepIndicator"></div>
+
+  <div class="card">
+    <div class="card-title">🏢 Company Profile</div>
+    <div class="card-sub">Tell us about the company. All fields carry forward automatically — no need to re-enter anything later.</div>
+
+    <div class="form-grid">
+      <div class="fg">
+        <label>Company Name *</label>
+        <input id="f-name" type="text" placeholder="e.g. Safaricom, Jumia, Wave Money" />
+        <div class="error-msg">Company name is required</div>
+      </div>
+      <div class="fg">
+        <label>Website / LinkedIn / Crunchbase</label>
+        <input id="f-url" type="text" placeholder="https://..." />
+      </div>
+      <div class="fg">
+        <label>Industry / Sector</label>
+        <input id="f-industry" type="text" placeholder="e.g. AgriTech, FinTech, Retail" />
+      </div>
+      <div class="fg">
+        <label>Company Stage</label>
+        <select id="f-stage">
+          <option value="">Select stage...</option>
+          <option>Pre-Seed / Ideation</option>
+          <option>Seed / MVP</option>
+          <option>Early Growth</option>
+          <option>Growth / Scale-Up</option>
+          <option>Mature / Established</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Geography</label>
+        <input id="f-geo" type="text" placeholder="e.g. Sub-Saharan Africa, Southeast Asia" />
+      </div>
+      <div class="fg">
+        <label>Company Size</label>
+        <select id="f-size">
+          <option value="">Select size...</option>
+          <option>1–10 employees</option>
+          <option>11–50 employees</option>
+          <option>51–200 employees</option>
+          <option>201–1000 employees</option>
+          <option>1000+ employees</option>
+        </select>
+      </div>
+      <div class="fg full">
+        <label>Business Description</label>
+        <textarea id="f-desc" placeholder="Value proposition, target customers, revenue model, key products/services..."></textarea>
+      </div>
+      <div class="fg full">
+        <label>Upload Documents (optional — pitch deck, annual report, etc.)</label>
+        <div class="upload-zone" id="uploadZone"
+             ondragover="handleDragOver(event)" ondragleave="handleDragLeave()" ondrop="handleDrop(event)">
+          <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" onchange="handleFileSelect(event)" />
+          <div class="uz-icon">📎</div>
+          <div class="uz-label"><strong>Click to upload</strong> or drag &amp; drop</div>
+          <div class="uz-types">PDF · PNG · JPG · WEBP · GIF · max 10MB each</div>
+        </div>
+        <div class="file-chips" id="fileChips"></div>
+        <div class="upload-msg" id="uploadMsg"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="step1Next()">Continue to AI Research →</button>
+      <button class="btn-secondary" onclick="Router.goHome()">← Back</button>
+      <span style="font-size:12px;color:var(--muted)">* Required</span>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/js/storage.js"></script>
+<script src="../assets/js/utils.js"></script>
+<script src="../assets/js/navigation.js"></script>
+<script>
+const uploadedDocs = [];
+
+function ready(fn) {
+  if (document.readyState !== 'loading') fn();
+  else document.addEventListener('DOMContentLoaded', fn);
+}
+
+ready(() => {
+  initPage(1);
+  loadProfileData();
+});
+
+function loadProfileData() {
+  const profile = Storage.getProfile();
+  if (profile.companyName) sv('f-name', profile.companyName);
+  if (profile.website) sv('f-url', profile.website);
+  if (profile.industry) sv('f-industry', profile.industry);
+  if (profile.stage) sv('f-stage', profile.stage);
+  if (profile.geography) sv('f-geo', profile.geography);
+  if (profile.size) sv('f-size', profile.size);
+  if (profile.description) sv('f-desc', profile.description);
+  if (profile.documents && Array.isArray(profile.documents)) {
+    uploadedDocs.length = 0;
+    uploadedDocs.push(...profile.documents);
+    renderChips();
+  }
+}
+
+function step1Next() {
+  if (!v('f-name').trim()) {
+    showError('f-name', 'Company name is required');
+    return;
+  }
+  clearErrors();
+
+  const profile = {
+    companyName: v('f-name'),
+    website: v('f-url'),
+    industry: v('f-industry'),
+    stage: v('f-stage'),
+    geography: v('f-geo'),
+    size: v('f-size'),
+    description: v('f-desc'),
+    documents: uploadedDocs,
+  };
+
+  Storage.saveProfile(profile);
+  Router.goToStep(2);
+}
+
+function showError(id, msg) {
+  const fg = $(id).closest('.fg');
+  if (fg) {
+    fg.classList.add('error');
+    const errorDiv = fg.querySelector('.error-msg');
+    if (errorDiv) errorDiv.textContent = msg;
+  }
+}
+
+function clearErrors() {
+  document.querySelectorAll('.fg.error').forEach(fg => fg.classList.remove('error'));
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  $('uploadZone').classList.add('drag-over');
+}
+
+function handleDragLeave() {
+  $('uploadZone').classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  handleDragLeave();
+  processFiles([...e.dataTransfer.files]);
+}
+
+function handleFileSelect(e) {
+  processFiles([...e.target.files]);
+  e.target.value = '';
+}
+
+async function processFiles(files) {
+  const msg = $('uploadMsg');
+  for (const f of files) {
+    const validation = validateFile(f);
+    if (!validation.valid) {
+      msg.textContent = '⚠ ' + validation.error;
+      continue;
+    }
+    if (uploadedDocs.find(d => d.name === f.name && d.size === f.size)) {
+      continue;
+    }
+    msg.textContent = `Reading ${f.name}...`;
+    try {
+      const data = await fileToBase64(f);
+      uploadedDocs.push({
+        name: f.name,
+        size: f.size,
+        mediaType: f.type,
+        label: ALLOWED_FILE_TYPES[f.type],
+        data
+      });
+      renderChips();
+      msg.textContent = '';
+    } catch (e) {
+      msg.textContent = `⚠ Failed to read ${f.name}`;
+    }
+  }
+}
+
+function renderChips() {
+  $('fileChips').innerHTML = uploadedDocs.map((d, i) => `
+    <div class="fchip">
+      <span>${d.label === 'PDF' ? '📄' : '🖼'}</span>
+      <span class="fchip-name" title="${d.name}">${d.name}</span>
+      <span class="fchip-type">${d.label}</span>
+      <span class="fchip-rm" onclick="removeFile(${i})">×</span>
+    </div>`).join('');
+}
+
+function removeFile(i) {
+  uploadedDocs.splice(i, 1);
+  renderChips();
+}
+</script>
+</body>
+</html>
