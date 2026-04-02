@@ -1,6 +1,17 @@
 // Navigation and routing logic
 
 class Router {
+  // Detect base path for GitHub Pages or subdirectory serving
+  static getBasePath() {
+    const path = window.location.pathname;
+    // If path contains '/pages/' or '/startuptool/', extract base
+    if (path.includes('/startuptool/')) {
+      return path.split('/startuptool/')[0] + '/startuptool';
+    }
+    // Otherwise, use root or detected base
+    return '';
+  }
+
   static PAGES = {
     1: 'pages/step1-profile.html',
     2: 'pages/step2-research.html',
@@ -19,7 +30,8 @@ class Router {
   static goToStep(step) {
     if (this.canNavigate(step)) {
       this.setCurrentStep(step);
-      window.location.href = this.PAGES[step];
+      const basePath = this.getBasePath();
+      window.location.href = basePath + '/' + this.PAGES[step];
     } else {
       alert('Complete the previous step before continuing.');
     }
@@ -49,7 +61,8 @@ class Router {
   }
 
   static goHome() {
-    window.location.href = 'index.html';
+    const basePath = this.getBasePath();
+    window.location.href = basePath + '/index.html';
   }
 
   static next() {
