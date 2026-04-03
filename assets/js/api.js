@@ -3,7 +3,7 @@
 
 // Ensure API_BASE is set (should be set by HTML inline script)
 if (!window.API_BASE) {
-  window.API_BASE = 'https://startuptool-production.up.railway.app';
+  window.API_BASE = 'https://startuptool-production-5428.up.railway.app/';
 }
 console.log('Using API_BASE:', window.API_BASE);
 
