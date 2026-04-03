@@ -22,7 +22,8 @@ if (hostname.includes('app.github.dev')) {
   console.log('✓ GitHub Pages detected, API_BASE:', API_BASE);
 }
 
-console.log('Final API_BASE:', API_BASE);
+const API_BASE = window.API_BASE || 'http://localhost:8001';
+console.log('Using API_BASE:', API_BASE);
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {

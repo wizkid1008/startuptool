@@ -16,11 +16,9 @@ from anthropic import Anthropic
 
 app = FastAPI(title="Enterprise Assessment Backend")
 
-# CORS configuration - allow frontend origin
+# CORS configuration - allow all origins in development
 origins = [
-    "http://localhost:8000",
-    "http://localhost:3000",
-    "https://wizkid1008.github.io",
+    "*",  # Allow all origins in development
 ]
 
 app.add_middleware(
