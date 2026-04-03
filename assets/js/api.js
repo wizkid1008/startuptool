@@ -1,16 +1,8 @@
 // Backend API handler for secure Claude API calls
-// All requests go to the backend which securely handles the Anthropic API key
+// Uses window.API_BASE set by the HTML page inline script
 
-// Hardcoded for Codespaces - replace with your actual Codespaces URL
-// Format: https://[codespace-name]-8001.app.github.dev
-let API_BASE = 'https://musical-space-disco-7vgwwgxqppwr2xg4w-8001.app.github.dev';
-
-// Fallback to localhost for local development
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  API_BASE = 'http://localhost:8001';
-}
-
-console.log('API_BASE:', API_BASE);
+const API_BASE = window.API_BASE || 'http://localhost:8001';
+console.log('Using API_BASE:', API_BASE);
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {
