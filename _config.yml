@@ -1,0 +1,8 @@
+# GitHub Pages configuration
+exclude:
+  - backend
+  - node_modules
+  - .gitignore
+  - README.md
+  - SCORING_ENGINE_GUIDE.md
+  - WEB_SCRAPER_SUMMARY.md
