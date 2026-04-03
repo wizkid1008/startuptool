@@ -31,12 +31,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Anthropic client
-import os
-api_key = os.getenv('ANTHROPIC_API_KEY')
-if not api_key:
-    raise ValueError("ANTHROPIC_API_KEY environment variable not set")
-client = Anthropic(api_key=api_key)
+# Lazy client initialization
+_client = None
+
+def get_client():
+    global _client
+    if _client is None:
+        api_key = os.getenv('ANTHROPIC_API_KEY')
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+        _client = Anthropic(api_key=api_key)
+    return _client
+
 
 # Models
 class CompanyProfile(BaseModel):
@@ -139,7 +145,7 @@ async def stream_auto_score(profile: CompanyProfile, documents: List[dict]):
 
     # Stream from Claude
     try:
-        with client.messages.stream(
+        with get_client().messages.stream(
             model="claude-opus-4-6",
             max_tokens=4000,
             messages=[
@@ -293,7 +299,7 @@ SMEAT SCORES:
 Format with **bold headers**. Be specific and actionable."""
 
         async def stream_analysis():
-            with client.messages.stream(
+            with get_client().messages.stream(
                 model="claude-opus-4-6",
                 max_tokens=2000,
                 messages=[
