@@ -2,7 +2,7 @@
 // All requests go to the backend which securely handles the Anthropic API key
 
 // Determine API base URL based on environment
-let API_BASE = 'http://localhost:8001'; // Default
+let API_BASE = 'https://startuptool-production.up.railway.app'; // Default
 
 const hostname = window.location.hostname;
 const protocol = window.location.protocol;
