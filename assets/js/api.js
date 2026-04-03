@@ -1,43 +1,32 @@
 // Backend API handler for secure Claude API calls
 // All requests go to the backend which securely handles the Anthropic API key
 
-function getAPIBase() {
-  if (typeof window === 'undefined') return 'http://localhost:8001';
-
+// Determine API base URL based on environment
+const API_BASE = (() => {
   const hostname = window.location.hostname;
   const protocol = window.location.protocol;
 
-  // Debug
-  console.log('Detecting API base for hostname:', hostname);
-
-  // Codespaces: hostname is like "musical-space-disco-7vgwwgxqppwr2xg4w-8000.app.github.dev"
-  // We need to change -8000 to -8001
+  // Codespaces: replace -8000 with -8001
   if (hostname.includes('app.github.dev')) {
     const backendHost = hostname.replace('-8000.app.github.dev', '-8001.app.github.dev');
-    const url = protocol + '//' + backendHost;
-    console.log('Codespaces detected, using:', url);
-    return url;
+    return protocol + '//' + backendHost;
   }
 
   // Local development
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    console.log('Localhost detected, using http://localhost:8001');
     return 'http://localhost:8001';
   }
 
   // Production (GitHub Pages)
   if (hostname.includes('github.io')) {
-    console.log('GitHub Pages detected');
     return 'https://api.yourdomain.com'; // Update with your production API URL
   }
 
   // Fallback
-  console.log('No match, using fallback localhost:8001');
   return 'http://localhost:8001';
-}
+})();
 
-const API_BASE = getAPIBase();
-console.log('Final API_BASE:', API_BASE);
+console.log('API_BASE:', API_BASE);
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {
