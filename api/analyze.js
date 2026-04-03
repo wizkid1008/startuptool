@@ -43,7 +43,7 @@ Provide strategic recommendations and insights based on these scores.`;
     res.setHeader('Connection', 'keep-alive');
 
     const stream = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+      model: 'claude-opus-4-1-latest',
       max_tokens: 2048,
       messages: [{ role: 'user', content: prompt }],
       stream: true,
