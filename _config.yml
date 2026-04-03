@@ -1,2 +1,0 @@
-exclude: [backend, node_modules, scoring_engine, web_scraper, nlp_pipeline]
-theme: null
