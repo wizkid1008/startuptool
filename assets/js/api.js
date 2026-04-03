@@ -1,29 +1,11 @@
 // Backend API handler for secure Claude API calls
-// All requests go to the backend which securely handles the Anthropic API key
+// Uses window.API_BASE set by the HTML page inline script
 
-// Determine API base URL based on environment
-let API_BASE = 'https://startuptool-production.up.railway.app'; // Default
-
-const hostname = window.location.hostname;
-const protocol = window.location.protocol;
-
-if (hostname.includes('app.github.dev')) {
-  // Codespaces: replace -8000 with -8001
-  const backendHost = hostname.replace('-8000.app.github.dev', '-8001.app.github.dev');
-  API_BASE = protocol + '//' + backendHost;
-  console.log('✓ Codespaces detected, API_BASE:', API_BASE);
-} else if (hostname === 'localhost' || hostname === '127.0.0.1') {
-  // Local development
-  API_BASE = 'http://localhost:8001';
-  console.log('✓ Localhost detected, API_BASE:', API_BASE);
-} else if (hostname.includes('github.io')) {
-  // Production (GitHub Pages)
-  API_BASE = 'https://api.yourdomain.com'; // Update with your production API URL
-  console.log('✓ GitHub Pages detected, API_BASE:', API_BASE);
+// Ensure API_BASE is set (should be set by HTML inline script)
+if (!window.API_BASE) {
+  window.API_BASE = 'https://startuptool-production.up.railway.app';
 }
-
-const API_BASE = window.API_BASE || 'http://localhost:8001';
-console.log('Using API_BASE:', API_BASE);
+console.log('Using API_BASE:', window.API_BASE);
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {
@@ -41,7 +23,7 @@ class ClaudeAPI {
         formData.append('documents', JSON.stringify(documents));
       }
 
-      const response = await fetch(`${API_BASE}/api/auto-score`, {
+      const response = await fetch(`${window.API_BASE}/api/auto-score`, {
         method: 'POST',
         body: formData,
       });
@@ -65,7 +47,7 @@ class ClaudeAPI {
       formData.append('scores', JSON.stringify(scores));
       formData.append('analysis_type', analysisType || 'full');
 
-      const response = await fetch(`${API_BASE}/api/analyze`, {
+      const response = await fetch(`${window.API_BASE}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
