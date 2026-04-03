@@ -223,8 +223,7 @@ async def auto_score_endpoint(profile: CompanyProfile, documents: Optional[str] 
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "ok"}
+    return {"status": "ok", "version": "v2"}
 
 
 @app.post("/api/analyze")
