@@ -12,7 +12,7 @@ import os
 from typing import Optional, List
 from anthropic import Anthropic
 
-app = FastAPI(title="Enterprise Assessment Backend")
+app = FastAPI(title="Enterprise Assessment Backend v2")
 
 # CORS configuration - allow all origins
 origins = ["*"]
