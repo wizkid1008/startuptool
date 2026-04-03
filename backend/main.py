@@ -32,7 +32,11 @@ app.add_middleware(
 )
 
 # Initialize Anthropic client
-client = Anthropic()
+import os
+api_key = os.getenv('ANTHROPIC_API_KEY')
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+client = Anthropic(api_key=api_key)
 
 # Models
 class CompanyProfile(BaseModel):
