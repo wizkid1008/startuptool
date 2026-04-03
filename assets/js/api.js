@@ -1,11 +1,34 @@
 // Backend API handler for secure Claude API calls
 // All requests go to the backend which securely handles the Anthropic API key
 
-const API_BASE = typeof window !== 'undefined' && window.location.hostname === 'localhost'
-  ? 'http://localhost:8001'
-  : (typeof window !== 'undefined' && window.location.hostname.includes('github.io'))
-    ? 'https://api.yourdomain.com' // Update with your production API URL
-    : 'http://localhost:8001';
+function getAPIBase() {
+  if (typeof window === 'undefined') return 'http://localhost:8001';
+
+  const hostname = window.location.hostname;
+  const protocol = window.location.protocol;
+
+  // Codespaces: hostname is like "wizkid1008-8000.app.github.dev"
+  // We need to change -8000 to -8001
+  if (hostname.includes('app.github.dev')) {
+    const backendHost = hostname.replace('-8000.', '-8001.');
+    return protocol + '//' + backendHost;
+  }
+
+  // Local development
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8001';
+  }
+
+  // Production (GitHub Pages)
+  if (hostname.includes('github.io')) {
+    return 'https://api.yourdomain.com'; // Update with your production API URL
+  }
+
+  // Fallback
+  return 'http://localhost:8001';
+}
+
+const API_BASE = getAPIBase();
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {
