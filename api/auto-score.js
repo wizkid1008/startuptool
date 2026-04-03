@@ -1,9 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -19,6 +15,15 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Check API key
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+    }
+
+    // Initialize client inside handler
+    const client = new Anthropic({ apiKey });
+
     // Parse JSON body
     const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { company_name, website, industry, stage, geography, description } = payload;
