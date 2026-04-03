@@ -19,11 +19,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Handle form data from FormData
-    const body = new URLSearchParams(req.body);
-    const company_name = body.get('company_name');
-    const scores_str = body.get('scores');
-    const scores = scores_str ? JSON.parse(scores_str) : {};
+    // Parse JSON body
+    const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { company_name, scores } = payload;
 
     if (!company_name) {
       return res.status(400).json({ error: 'company_name is required' });

@@ -10,22 +10,22 @@ console.log('Using API_BASE:', window.API_BASE);
 class ClaudeAPI {
   static async autoScore(profile, documents) {
     try {
-      const formData = new FormData();
-      formData.append('company_name', profile.companyName);
-      formData.append('website', profile.website || '');
-      formData.append('industry', profile.industry || '');
-      formData.append('stage', profile.stage || '');
-      formData.append('geography', profile.geography || '');
-      formData.append('description', profile.description || '');
-
-      // Add documents as JSON
-      if (documents && documents.length > 0) {
-        formData.append('documents', JSON.stringify(documents));
-      }
+      const payload = {
+        company_name: profile.companyName,
+        website: profile.website || '',
+        industry: profile.industry || '',
+        stage: profile.stage || '',
+        geography: profile.geography || '',
+        description: profile.description || '',
+        documents: documents || [],
+      };
 
       const response = await fetch(`${window.API_BASE}/api/auto-score`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -42,14 +42,18 @@ class ClaudeAPI {
 
   static async generateAnalysis(companyName, scores, analysisType) {
     try {
-      const formData = new FormData();
-      formData.append('company_name', companyName);
-      formData.append('scores', JSON.stringify(scores));
-      formData.append('analysis_type', analysisType || 'full');
+      const payload = {
+        company_name: companyName,
+        scores: scores,
+        analysis_type: analysisType || 'full',
+      };
 
       const response = await fetch(`${window.API_BASE}/api/analyze`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
