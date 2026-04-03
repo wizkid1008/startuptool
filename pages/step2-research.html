@@ -111,29 +111,94 @@ async function runAutoScore() {
   const docs = profile.documents || [];
 
   setPS('step-docs', docs.length ? 'active' : 'done', docs.length ? `Processing ${docs.length} file(s)...` : 'No documents uploaded');
-  setPS('step-search', '');
-  setPS('step-analyze', '');
-  setPS('step-score', '');
+  setPS('step-search', 'active', 'Researching company...');
+  setPS('step-analyze', '', '');
+  setPS('step-score', '', '');
 
   try {
-    // Note: API calls should come from a backend. This is a placeholder.
-    // For production, implement a backend endpoint that securely handles Claude API calls
+    // Call backend API to get Claude analysis
+    setPS('step-search', 'active', 'Searching for company information...');
 
-    alert('API integration requires a secure backend. This is a placeholder for the AI Research feature.\n\nTo implement:\n1. Create a backend endpoint that calls Claude API\n2. Pass company data and documents to the endpoint\n3. Stream results back to the frontend\n4. Parse and display scores');
+    const results = await ClaudeAPI.autoScore(profile, docs);
+
+    if (!results || !results.segments) {
+      throw new Error('Invalid response from backend');
+    }
+
+    aiResults = results;
 
     setPS('step-search', 'done', 'Info retrieved');
+    setPS('step-analyze', 'active', 'Analyzing across SMEAT dimensions...');
+
+    // Display results
     setPS('step-analyze', 'done', 'Analysis complete');
     setPS('step-score', 'done', 'Scores ready — review below');
+
+    // Parse and display scores in grid
+    displayScores(results);
+
     $('s2-next').style.display = 'flex';
 
   } catch (err) {
-    preview.textContent = '⚠ ' + err.message;
-    setPS('step-score', 'active', '⚠ ' + err.message);
+    const msg = err.message;
+    if (msg.includes('fetch') || msg.includes('Network') || msg.includes('Backend')) {
+      preview.textContent = '⚠ Backend API not running. Start it with: cd backend && python main.py';
+      setPS('step-score', 'active', '⚠ Backend not available');
+    } else {
+      preview.textContent = '⚠ ' + msg;
+      setPS('step-score', 'active', '⚠ ' + msg);
+    }
     console.error(err);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '⚡ Research &amp; Auto-Score';
   }
+}
+
+function displayScores(results) {
+  const grid = $('reasoningGrid');
+  grid.innerHTML = '';
+  grid.classList.add('visible');
+
+  if (results.summary) {
+    const summary = document.createElement('div');
+    summary.className = 'score-summary';
+    summary.innerHTML = `<strong>${results.company_name || 'Company'}</strong><br/>${results.summary}`;
+    grid.appendChild(summary);
+  }
+
+  // Display each segment
+  Object.entries(results.segments || {}).forEach(([segName, seg]) => {
+    const card = document.createElement('div');
+    card.className = 'score-card';
+
+    let html = `<div class="score-header">${segName.toUpperCase()}</div>`;
+
+    if (seg.subs && Array.isArray(seg.subs)) {
+      html += '<div class="score-subs">';
+      seg.subs.forEach(sub => {
+        const maturityLabel = ['Advanced', 'Developing', 'Emerging', 'Nascent'][sub.maturity - 1] || 'N/A';
+        const impactLabel = ['Critical', 'Neutral', 'Low', 'Not Needed'][sub.impact - 1] || 'N/A';
+        html += `
+          <div class="sub-row">
+            <div class="sub-name">${sub.name}</div>
+            <div class="sub-scores">
+              <span class="badge">M: ${maturityLabel}</span>
+              <span class="badge">I: ${impactLabel}</span>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    if (seg.confidence) {
+      html += `<div class="confidence">Confidence: ${(seg.confidence * 100).toFixed(0)}%</div>`;
+    }
+
+    card.innerHTML = html;
+    grid.appendChild(card);
+  });
 }
 
 function applyAndContinue() {

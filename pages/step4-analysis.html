@@ -82,21 +82,34 @@ function selType(type, el) {
 async function runAnalysis() {
   const btn = $('runBtn');
   const out = $('aiOut');
+  const typeSelect = $('analysisType');
 
   btn.disabled = true;
   btn.innerHTML = '<span style="display:inline-block;animation:spin .8s linear infinite">⟳</span> Generating...';
-  out.innerHTML = '<span style="color:var(--muted);font-size:13px">🔍 Generating analysis — this would stream from Claude...</span>';
+  out.innerHTML = '<span style="color:var(--muted);font-size:13px">🔍 Generating analysis from Claude...</span>';
 
   try {
-    // This would call the backend endpoint
     const profile = Storage.getProfile();
     const review = Storage.getReview();
+    const analysisType = typeSelect ? typeSelect.value : 'full';
 
-    const analysisPrompt = buildAnalysisPrompt(profile, review.scores);
-    out.innerHTML = fmtText(analysisPrompt);
+    // Call backend API to generate analysis
+    const analysis = await ClaudeAPI.generateAnalysis(profile.companyName, review.scores, analysisType);
+
+    if (!analysis) {
+      throw new Error('Empty response from backend');
+    }
+
+    out.innerHTML = fmtText(analysis);
 
   } catch (err) {
-    out.innerHTML = `<span style="color:var(--danger)">Error: ${err.message}</span>`;
+    const msg = err.message;
+    if (msg.includes('fetch') || msg.includes('Network') || msg.includes('Backend')) {
+      out.innerHTML = `<span style="color:var(--danger)">⚠ Backend API not running. Start it with:<br/>cd backend && python main.py</span>`;
+    } else {
+      out.innerHTML = `<span style="color:var(--danger)">Error: ${msg}</span>`;
+    }
+    console.error(err);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '✦ Generate Analysis';
