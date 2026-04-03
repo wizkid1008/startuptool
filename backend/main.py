@@ -23,8 +23,8 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["https://wizkid1008.github.io"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
