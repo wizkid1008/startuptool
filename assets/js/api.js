@@ -1,5 +1,26 @@
 // Backend API handler for secure Claude API calls
-// Uses window.API_BASE set by the HTML page inline script
+// All requests go to the backend which securely handles the Anthropic API key
+
+// Determine API base URL based on environment
+let API_BASE = 'https://startuptool-production.up.railway.app'; // Default
+
+const hostname = window.location.hostname;
+const protocol = window.location.protocol;
+
+if (hostname.includes('app.github.dev')) {
+  // Codespaces: replace -8000 with -8001
+  const backendHost = hostname.replace('-8000.app.github.dev', '-8001.app.github.dev');
+  API_BASE = protocol + '//' + backendHost;
+  console.log('✓ Codespaces detected, API_BASE:', API_BASE);
+} else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  // Local development
+  API_BASE = 'http://localhost:8001';
+  console.log('✓ Localhost detected, API_BASE:', API_BASE);
+} else if (hostname.includes('github.io')) {
+  // Production (GitHub Pages)
+  API_BASE = 'https://api.yourdomain.com'; // Update with your production API URL
+  console.log('✓ GitHub Pages detected, API_BASE:', API_BASE);
+}
 
 const API_BASE = window.API_BASE || 'http://localhost:8001';
 console.log('Using API_BASE:', API_BASE);
