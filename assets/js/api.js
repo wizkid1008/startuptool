@@ -71,7 +71,7 @@ class ClaudeAPI {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    let fullData = null;
+    let fullText = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -87,9 +87,9 @@ class ClaudeAPI {
           const data = JSON.parse(line.slice(6));
 
           if (data.type === 'chunk' && data.data) {
-            fullData = data.data;
+            fullText += data.data;
           } else if (data.type === 'complete' && data.data) {
-            fullData = data.data;
+            return data.data;
           } else if (data.type === 'error') {
             throw new Error(data.message);
           }
@@ -99,7 +99,12 @@ class ClaudeAPI {
       }
     }
 
-    return fullData;
+    // Try to parse the accumulated text as JSON
+    try {
+      return JSON.parse(fullText);
+    } catch (e) {
+      return fullText;
+    }
   }
 
   static async parseStreamAnalysis(response) {
