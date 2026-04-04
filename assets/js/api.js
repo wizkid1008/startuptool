@@ -3,29 +3,29 @@
 
 // Ensure API_BASE is set (should be set by HTML inline script)
 if (!window.API_BASE) {
-  window.API_BASE = 'https://startuptool-production.up.railway.app';
+  window.API_BASE = 'https://startuptool-eight.vercel.app';
 }
 console.log('Using API_BASE:', window.API_BASE);
 
 class ClaudeAPI {
   static async autoScore(profile, documents) {
     try {
-      const formData = new FormData();
-      formData.append('company_name', profile.companyName);
-      formData.append('website', profile.website || '');
-      formData.append('industry', profile.industry || '');
-      formData.append('stage', profile.stage || '');
-      formData.append('geography', profile.geography || '');
-      formData.append('description', profile.description || '');
-
-      // Add documents as JSON
-      if (documents && documents.length > 0) {
-        formData.append('documents', JSON.stringify(documents));
-      }
+      const payload = {
+        company_name: profile.companyName,
+        website: profile.website || '',
+        industry: profile.industry || '',
+        stage: profile.stage || '',
+        geography: profile.geography || '',
+        description: profile.description || '',
+        documents: documents || [],
+      };
 
       const response = await fetch(`${window.API_BASE}/api/auto-score`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -42,14 +42,18 @@ class ClaudeAPI {
 
   static async generateAnalysis(companyName, scores, analysisType) {
     try {
-      const formData = new FormData();
-      formData.append('company_name', companyName);
-      formData.append('scores', JSON.stringify(scores));
-      formData.append('analysis_type', analysisType || 'full');
+      const payload = {
+        company_name: companyName,
+        scores: scores,
+        analysis_type: analysisType || 'full',
+      };
 
       const response = await fetch(`${window.API_BASE}/api/analyze`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -67,7 +71,7 @@ class ClaudeAPI {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    let fullData = null;
+    let fullText = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -83,9 +87,9 @@ class ClaudeAPI {
           const data = JSON.parse(line.slice(6));
 
           if (data.type === 'chunk' && data.data) {
-            fullData = data.data;
+            fullText += data.data;
           } else if (data.type === 'complete' && data.data) {
-            fullData = data.data;
+            return data.data;
           } else if (data.type === 'error') {
             throw new Error(data.message);
           }
@@ -95,7 +99,12 @@ class ClaudeAPI {
       }
     }
 
-    return fullData;
+    // Try to parse the accumulated text as JSON
+    try {
+      return JSON.parse(fullText);
+    } catch (e) {
+      return fullText;
+    }
   }
 
   static async parseStreamAnalysis(response) {
