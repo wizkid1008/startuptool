@@ -99,10 +99,20 @@ class ClaudeAPI {
       }
     }
 
+    // Strip markdown code block markers if present
+    let jsonText = fullText.trim();
+    if (jsonText.startsWith('```')) {
+      // Remove opening marker (```json or ```)
+      jsonText = jsonText.replace(/^```(?:json)?\n?/, '');
+      // Remove closing marker (```)
+      jsonText = jsonText.replace(/\n?```$/, '');
+    }
+
     // Try to parse the accumulated text as JSON
     try {
-      return JSON.parse(fullText);
+      return JSON.parse(jsonText);
     } catch (e) {
+      console.error('Failed to parse JSON:', jsonText.substring(0, 100));
       return fullText;
     }
   }
