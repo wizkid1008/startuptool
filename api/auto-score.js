@@ -44,7 +44,7 @@ Return ONLY valid JSON with the scores.`;
     res.setHeader('Connection', 'keep-alive');
 
     const stream = await client.messages.create({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-sonnet-4',
       max_tokens: 2048,
       messages: [{ role: 'user', content: prompt }],
       stream: true,
