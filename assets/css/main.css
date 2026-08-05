@@ -1,22 +1,56 @@
-/* Main Stylesheet - SMEAT Assessment Framework */
+/* Main Stylesheet - SMEAT Assessment Framework
+ *
+ * Thrushcross Verify design language: light ground, hairline rules, tight
+ * display type, uppercase letterspaced micro-labels, status carried by pills.
+ *
+ * Variable NAMES are deliberately unchanged from the previous dark theme.
+ * forms.css, analysis.css, and the inline styles in the HTML all consume
+ * them, so repointing the values here converts every surface at once.
+ */
 
-/* Color Palette */
 :root {
-  --bg: #0e0f11;
-  --surface: #161820;
-  --surface2: #1e2028;
-  --border: #2a2d38;
-  --text: #e8eaf0;
-  --muted: #7a7f96;
-  --accent: #6ee7b7;
-  --accent2: #818cf8;
-  --accent3: #f472b6;
-  --danger: #f87171;
-  --warn: #fbbf24;
-  --s1: #6ee7b7;
-  --s2: #818cf8;
-  --s3: #fbbf24;
-  --s4: #f87171;
+  /* Surface (was dark) */
+  --bg: #ffffff;
+  --surface: #fafaf8;
+  --surface2: #f4f4f1;
+
+  /* Line */
+  --border: #e4e4e0;
+  --border-strong: #d2d2cc;
+
+  /* Ink */
+  --text: #111111;
+  --muted: #6e6e6e;
+  --faint: #9a9a9a;
+
+  /* Accents collapse to ink — the language carries emphasis with weight,
+     rule, and letterspacing rather than hue. */
+  --accent: #111111;
+  --accent2: #111111;
+  --accent3: #6e6e6e;
+
+  /* Signal */
+  --danger: #b91c1c;
+  --danger-bg: #fee2e2;
+  --warn: #92400e;
+  --warn-bg: #fef3c7;
+  --good: #15803d;
+  --good-bg: #dcfce7;
+  --info: #1d4ed8;
+  --info-bg: #dbeafe;
+
+  /* Maturity scale 1-4: Advanced, Developing, Emerging, Nascent */
+  --s1: #15803d;
+  --s2: #1d4ed8;
+  --s3: #b45309;
+  --s4: #b91c1c;
+
+  --sans: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --masthead-h: 64px;
+  --radius: 10px;
+  --radius-sm: 6px;
 }
 
 /* Reset */
@@ -29,20 +63,15 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--sans);
   min-height: 100vh;
-  line-height: 1.6;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* The dark theme's grid overlay does not belong on a light ground. */
 body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: linear-gradient(rgba(110, 231, 183, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(110, 231, 183, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
+  content: none;
 }
 
 /* Animations */
@@ -65,7 +94,7 @@ body::before {
 @keyframes fadein {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -73,90 +102,150 @@ body::before {
   }
 }
 
-/* Container */
+/* Masthead ================================================================= */
+
+.masthead {
+  height: var(--masthead-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 24px;
+  background: #000;
+  color: #fff;
+}
+
+.masthead a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.wordmark:hover {
+  text-decoration: none;
+}
+
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.masthead-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Container ================================================================ */
+
 .app {
   position: relative;
   z-index: 1;
-  max-width: 1100px;
+  max-width: 1180px;
   margin: 0 auto;
   padding: 36px 24px 80px;
-  animation: fadein 0.3s ease;
+  animation: fadein 0.25s ease;
 }
 
-/* Typography */
+/* Typography =============================================================== */
+
 h1,
 h2,
 h3 {
-  font-family: 'DM Serif Display', serif;
-  line-height: 1.1;
+  font-family: var(--sans);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
 }
 
 h1 {
-  font-size: clamp(30px, 5vw, 54px);
+  font-size: clamp(32px, 5vw, 60px);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 h3 {
-  font-size: 18px;
+  font-size: 16px;
 }
 
-/* Header */
+/* Page head ================================================================ */
+
 .header {
-  text-align: center;
-  margin-bottom: 40px;
+  text-align: left;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
 }
 
 .eyebrow {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--accent);
+  letter-spacing: 0.14em;
+  color: var(--muted);
   text-transform: uppercase;
-  margin-bottom: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  margin-bottom: 12px;
+  display: block;
+  font-weight: 500;
 }
 
+/* The dark theme drew rules either side of the eyebrow; the Thrushcross
+   treatment is a plain letterspaced label. */
 .eyebrow::before,
 .eyebrow::after {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 1px;
-  background: var(--accent);
-  opacity: 0.5;
+  content: none;
 }
 
 .header h1 {
-  background: linear-gradient(135deg, #e8eaf0 30%, #6ee7b7 70%, #818cf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 10px;
+  /* Was a mint-to-indigo gradient fill. */
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--text);
+  margin-bottom: 12px;
 }
 
 .header p {
   color: var(--muted);
-  font-size: 15px;
-  max-width: 500px;
-  margin: 0 auto;
-  font-weight: 300;
+  font-size: 16px;
+  max-width: 640px;
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-/* Stepper */
+/* Stepper ================================================================== */
+
 .stepper {
   display: flex;
-  align-items: center;
-  background: var(--surface);
+  align-items: stretch;
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 6px;
-  margin-bottom: 36px;
-  gap: 0;
+  border-radius: var(--radius);
+  padding: 0;
+  margin-bottom: 32px;
+  overflow: hidden;
 }
 
 .step-pill {
@@ -164,11 +253,16 @@ h3 {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 14px 16px;
+  border-radius: 0;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
   user-select: none;
+  background: var(--bg);
+}
+
+.step-pill:hover {
+  background: var(--surface);
 }
 
 .step-pill.active {
@@ -177,49 +271,53 @@ h3 {
 
 .step-pill.locked {
   cursor: not-allowed;
-  opacity: 0.4;
+  opacity: 0.45;
   pointer-events: none;
 }
 
 .step-num {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   font-weight: 500;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border-strong);
   color: var(--muted);
-  transition: all 0.2s;
+  background: var(--bg);
+  transition: all 0.15s;
 }
 
 .step-pill.active .step-num {
-  border-color: var(--accent2);
-  color: var(--accent2);
-  background: rgba(129, 140, 248, 0.12);
+  border-color: var(--text);
+  color: #fff;
+  background: var(--text);
 }
 
 .step-pill.done .step-num {
-  border-color: var(--accent);
-  color: var(--bg);
-  background: var(--accent);
+  border-color: var(--good);
+  color: var(--good);
+  background: var(--good-bg);
 }
 
 .step-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
   line-height: 1.2;
+  letter-spacing: -0.005em;
 }
 
 .step-sub-label {
+  font-family: var(--mono);
   font-size: 10px;
-  color: var(--muted);
-  opacity: 0.7;
+  color: var(--faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .step-pill.active .step-label {
@@ -227,29 +325,32 @@ h3 {
 }
 
 .step-pill.done .step-label {
-  color: var(--accent);
+  color: var(--text);
 }
 
 .step-sep {
   width: 1px;
-  height: 26px;
+  height: auto;
   background: var(--border);
   flex-shrink: 0;
-  margin: 0 2px;
+  margin: 0;
 }
 
-/* Cards */
+/* Cards ==================================================================== */
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 28px 32px;
-  margin-bottom: 20px;
+  border-radius: var(--radius);
+  padding: 24px 26px;
+  margin-bottom: 18px;
 }
 
 .card-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 20px;
+  font-family: var(--sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin-bottom: 5px;
   display: flex;
   align-items: center;
@@ -259,162 +360,181 @@ h3 {
 .card-sub {
   color: var(--muted);
   font-size: 13px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 
-/* Badges */
+/* Badges =================================================================== */
+
 .ai-badge {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  background: linear-gradient(135deg, var(--accent2), var(--accent3));
-  color: white;
-  padding: 3px 8px;
-  border-radius: 99px;
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  padding: 3px 9px;
+  border-radius: 999px;
   margin-left: auto;
+  font-weight: 500;
 }
 
-/* Profile bar */
+/* Profile bar ============================================================== */
+
 .profile-bar {
-  background: var(--surface2);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 13px 18px;
   margin-bottom: 20px;
   font-size: 13px;
   color: var(--muted);
   display: flex;
-  gap: 6px 20px;
+  gap: 6px 22px;
   flex-wrap: wrap;
   align-items: center;
 }
 
 .profile-bar strong {
   color: var(--text);
+  font-weight: 600;
 }
 
 .profile-bar a {
-  color: var(--accent2);
-  text-decoration: none;
-}
-
-.profile-bar a:hover {
+  color: var(--text);
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* Buttons */
+/* Buttons ================================================================== */
+
 .btn-primary,
 .btn-secondary,
 .btn-ai,
 .btn-success {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--sans);
   font-weight: 600;
-  border: none;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 26px;
+  padding: 11px 20px;
   font-size: 14px;
+  letter-spacing: -0.005em;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent2), #a855f7);
-  color: white;
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
 }
 
 .btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background: #3d3d3d;
+  border-color: #3d3d3d;
 }
 
 .btn-primary:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
 }
 
 .btn-secondary {
   background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  padding: 11px 22px;
+  color: var(--text);
+  border-color: var(--border-strong);
+  padding: 10px 18px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .btn-secondary:hover {
-  border-color: var(--accent2);
-  color: var(--accent2);
+  background: var(--surface2);
+  border-color: var(--text);
+  color: var(--text);
 }
 
+/* Was a violet-to-pink gradient. Kept distinct from the primary action by
+   outline rather than hue. */
 .btn-ai {
-  background: linear-gradient(135deg, #818cf8, #f472b6);
-  color: white;
+  background: var(--bg);
+  color: var(--text);
+  border-color: var(--text);
 }
 
 .btn-ai:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  background: var(--surface2);
 }
 
 .btn-ai:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
-  transform: none;
 }
 
 .btn-success {
-  background: rgba(110, 231, 183, 0.14);
-  color: var(--accent);
-  border: 1px solid rgba(110, 231, 183, 0.35);
-  padding: 12px 26px;
+  background: var(--good-bg);
+  color: var(--good);
+  border-color: #b7e4c7;
+  padding: 11px 20px;
 }
 
 .btn-success:hover {
-  background: rgba(110, 231, 183, 0.25);
+  background: #c9f5d8;
 }
 
 .btn-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-  margin-top: 22px;
+  margin-top: 20px;
 }
 
-/* Links */
+/* Links ==================================================================== */
+
 a {
-  color: var(--accent2);
+  color: var(--text);
   text-decoration: none;
 }
 
 a:hover {
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* Responsive =============================================================== */
+
+@media (max-width: 760px) {
   .app {
     padding: 24px 16px 60px;
   }
 
   .stepper {
-    padding: 4px;
+    flex-direction: column;
+  }
+
+  .step-sep {
+    width: auto;
+    height: 1px;
   }
 
   .step-sub-label {
     display: none;
   }
 
-  .header h1 {
-    font-size: 28px;
+  .card {
+    padding: 18px 16px;
   }
 
-  .card {
-    padding: 20px 16px;
+  .masthead {
+    padding: 0 16px;
+  }
+
+  .masthead-meta {
+    display: none;
   }
 }

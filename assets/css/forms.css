@@ -17,7 +17,7 @@
 }
 
 .fg label {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -32,7 +32,7 @@
   border-radius: 8px;
   padding: 10px 14px;
   color: var(--text);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--sans);
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s, background-color 0.2s;
@@ -48,7 +48,7 @@
 
 .fg textarea {
   min-height: 80px;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--sans);
 }
 
 .fg select option {
@@ -70,7 +70,7 @@
   display: none;
   font-size: 11px;
   color: var(--danger);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   margin-top: 2px;
 }
 
@@ -117,7 +117,7 @@
 }
 
 .uz-types {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   color: var(--muted);
   margin-top: 3px;
@@ -140,7 +140,7 @@
   padding: 4px 9px;
   font-size: 11px;
   color: var(--accent2);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   max-width: 200px;
 }
 
@@ -172,7 +172,7 @@
   font-size: 11px;
   color: var(--muted);
   margin-top: 5px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
 }
 
 /* Progress indicators */
@@ -237,7 +237,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: var(--muted);
   max-height: 150px;
