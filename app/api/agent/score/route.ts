@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     .select("file_name,document_type,parsed_text")
     .eq("company_id", assessment.company_id);
 
-  const modelName = "claude-sonnet-4-20250514";
+  const modelName = "claude-sonnet-5";
 
   const { data: run } = await supabase
     .from("agent_runs")
@@ -103,7 +103,10 @@ export async function POST(request: Request) {
     const client = new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") });
     const response = await client.messages.create({
       model: modelName,
-      max_tokens: 6000,
+      // 30 subdimensions, each with a rationale and evidence, plus the
+      // executive summary. 6000 truncated regularly, which surfaced as a JSON
+      // parse failure after the call had already been billed.
+      max_tokens: 16000,
       messages: [
         {
           role: "user",
