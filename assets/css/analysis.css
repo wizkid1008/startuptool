@@ -41,13 +41,13 @@
 }
 
 .seg-hd h3 {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--sans);
   font-size: 16px;
   flex: 1;
 }
 
 .seg-badge {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   padding: 2px 8px;
   border-radius: 99px;
@@ -68,7 +68,7 @@
 }
 
 .sub-lbl {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 1px;
   color: var(--muted);
@@ -100,7 +100,7 @@
   border-radius: 8px;
   padding: 7px 9px;
   color: var(--text);
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 12px;
   outline: none;
   cursor: pointer;
@@ -138,7 +138,7 @@
 }
 
 .sc-lbl {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -148,7 +148,7 @@
 }
 
 .sc-val {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--sans);
   font-size: 28px;
   line-height: 1;
 }
@@ -193,7 +193,7 @@ canvas {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   color: var(--muted);
 }
@@ -238,7 +238,7 @@ canvas {
 }
 
 .r-seg-name {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--sans);
   font-size: 14px;
   flex: 1;
 }
@@ -249,7 +249,7 @@ canvas {
 }
 
 .r-chip {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 99px;
@@ -314,7 +314,7 @@ canvas {
 }
 
 .conf-lbl {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 10px;
   color: var(--muted);
   margin-top: 3px;
@@ -329,7 +329,7 @@ canvas {
 }
 
 .type-btn {
-  font-family: 'DM Mono', monospace;
+  font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -360,7 +360,7 @@ canvas {
 }
 
 .ai-out h3 {
-  font-family: 'DM Serif Display', serif;
+  font-family: var(--sans);
   font-size: 18px;
   color: var(--accent);
   margin: 16px 0 7px;
