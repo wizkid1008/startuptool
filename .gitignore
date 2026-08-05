@@ -5,3 +5,8 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
+
+# Excel lock files (created while a workbook is open)
+~$*
+# The working copy lives at the repo root; the versioned reference is in reference/
+/SMEAT Tool.xlsm
