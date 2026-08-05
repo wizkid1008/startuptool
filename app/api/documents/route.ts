@@ -1,24 +1,83 @@
-import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
 import { z } from "zod";
+import { failurePage, formatIssues, seeOther } from "@/lib/http";
 import { createServiceClient } from "@/lib/supabase/server";
 
+const MAX_BYTES = 25 * 1024 * 1024;
+
+const ALLOWED_EXTENSIONS = [
+  ".pdf",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".txt",
+  ".md",
+  ".csv"
+];
+
 const requestSchema = z.object({
-  company_id: z.string().uuid()
+  company_id: z.string().uuid("A valid company is required")
 });
+
+function isTextLike(file: File) {
+  const name = file.name.toLowerCase();
+  return file.type.startsWith("text/") || name.endsWith(".md") || name.endsWith(".csv");
+}
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const parsed = requestSchema.parse({ company_id: formData.get("company_id") });
+  const parsed = requestSchema.safeParse({ company_id: formData.get("company_id") });
+
+  if (!parsed.success) {
+    return failurePage({
+      title: "That upload could not be accepted.",
+      detail: formatIssues(parsed.error),
+      backHref: "/companies",
+      backLabel: "Back to companies"
+    });
+  }
+
+  const companyId = parsed.data.company_id;
+  const back = `/companies/${companyId}`;
   const file = formData.get("document");
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "document file is required" }, { status: 400 });
+  if (!(file instanceof File) || file.size === 0) {
+    return failurePage({
+      title: "No file was received.",
+      detail: "Choose a document before uploading.",
+      backHref: back,
+      backLabel: "Back to company"
+    });
+  }
+
+  if (file.size > MAX_BYTES) {
+    return failurePage({
+      title: "That file is too large.",
+      detail: `Limit is ${MAX_BYTES / (1024 * 1024)} MB; this file is ${(
+        file.size /
+        (1024 * 1024)
+      ).toFixed(1)} MB.`,
+      backHref: back,
+      backLabel: "Back to company",
+      status: 413
+    });
+  }
+
+  const lowerName = file.name.toLowerCase();
+  if (!ALLOWED_EXTENSIONS.some((extension) => lowerName.endsWith(extension))) {
+    return failurePage({
+      title: "That file type is not supported.",
+      detail: `Accepted types: ${ALLOWED_EXTENSIONS.join(", ")}`,
+      backHref: back,
+      backLabel: "Back to company",
+      status: 415
+    });
   }
 
   const supabase = createServiceClient();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const storagePath = `${parsed.company_id}/${Date.now()}-${safeName}`;
+  const storagePath = `${companyId}/${Date.now()}-${safeName}`;
   const bytes = await file.arrayBuffer();
 
   const { error: uploadError } = await supabase.storage
@@ -29,16 +88,19 @@ export async function POST(request: Request) {
     });
 
   if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    return failurePage({
+      title: "The file could not be stored.",
+      detail: uploadError.message,
+      backHref: back,
+      backLabel: "Back to company",
+      status: 500
+    });
   }
 
-  const parsedText =
-    file.type.startsWith("text/") || file.name.endsWith(".md") || file.name.endsWith(".csv")
-      ? await file.text()
-      : null;
+  const parsedText = isTextLike(file) ? await file.text() : null;
 
   const { error: insertError } = await supabase.from("company_documents").insert({
-    company_id: parsed.company_id,
+    company_id: companyId,
     storage_path: storagePath,
     file_name: file.name,
     mime_type: file.type || "application/octet-stream",
@@ -47,8 +109,17 @@ export async function POST(request: Request) {
   });
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    // The object is already in storage; drop it so the row and the bucket agree.
+    await supabase.storage.from("company-documents").remove([storagePath]);
+
+    return failurePage({
+      title: "The document record could not be saved.",
+      detail: insertError.message,
+      backHref: back,
+      backLabel: "Back to company",
+      status: 500
+    });
   }
 
-  redirect(`/companies/${parsed.company_id}`);
+  return seeOther(back, request);
 }

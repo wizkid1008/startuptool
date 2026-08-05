@@ -1,29 +1,65 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { z } from "zod";
+import { failurePage, formatIssues } from "@/lib/http";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { createServiceClient } from "@/lib/supabase/server";
 
 const requestSchema = z.object({
-  assessment_id: z.string().uuid()
+  assessment_id: z.string().uuid("A valid assessment is required")
 });
+
+/**
+ * A raw company name in Content-Disposition allows header injection via a
+ * quote or newline. Emit a sanitised ASCII fallback plus an RFC 5987 form.
+ */
+function contentDisposition(name: string) {
+  const base = name.trim() || "smeat";
+  const ascii = base.replace(/[^A-Za-z0-9._-]/g, "_").slice(0, 80) || "smeat";
+  const encoded = encodeURIComponent(`${base}-assessment.xlsx`);
+  return `attachment; filename="${ascii}-assessment.xlsx"; filename*=UTF-8''${encoded}`;
+}
 
 export async function POST(request: Request) {
   const formData = await request.formData();
-  const parsed = requestSchema.parse(Object.fromEntries(formData.entries()));
-  const supabase = createServiceClient();
+  const parsed = requestSchema.safeParse(Object.fromEntries(formData.entries()));
 
-  const [{ data: assessment }, { data: scores }, { data: evidence }] = await Promise.all([
-    supabase.from("assessments").select("*, companies(*)").eq("id", parsed.assessment_id).single(),
-    supabase.from("assessment_scores").select("*").eq("assessment_id", parsed.assessment_id),
-    supabase.from("assessment_evidence").select("*").eq("assessment_id", parsed.assessment_id)
-  ]);
-
-  if (!assessment) {
-    return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
+  if (!parsed.success) {
+    return failurePage({
+      title: "That export could not be produced.",
+      detail: formatIssues(parsed.error),
+      backHref: "/assessments",
+      backLabel: "Back to assessments"
+    });
   }
 
-  const company = assessment.companies as { name: string } | null;
+  const assessmentId = parsed.data.assessment_id;
+  const back = `/assessments/${assessmentId}`;
+  const supabase = createServiceClient();
+
+  const [{ data: assessment, error: assessmentError }, { data: scores }, { data: evidence }] =
+    await Promise.all([
+      supabase.from("assessments").select("*").eq("id", assessmentId).single(),
+      supabase.from("assessment_scores").select("*").eq("assessment_id", assessmentId),
+      supabase.from("assessment_evidence").select("*").eq("assessment_id", assessmentId)
+    ]);
+
+  if (assessmentError || !assessment) {
+    return failurePage({
+      title: "That assessment was not found.",
+      detail: assessmentError?.message,
+      backHref: "/assessments",
+      backLabel: "Back to assessments",
+      status: 404
+    });
+  }
+
+  const { data: company } = await supabase
+    .from("companies")
+    .select("name")
+    .eq("id", assessment.company_id)
+    .single();
+
   const scoreRows = (scores ?? []).map((score) => ({
     dimension_key: score.dimension_key,
     dimension: SMEAT_DIMENSIONS.find((dimension) => dimension.key === score.dimension_key)?.label,
@@ -37,11 +73,12 @@ export async function POST(request: Request) {
   }));
 
   const workbook = XLSX.utils.book_new();
+
   XLSX.utils.book_append_sheet(
     workbook,
     XLSX.utils.json_to_sheet([
       {
-        company_name: company?.name,
+        company_name: company?.name ?? "",
         assessment_id: assessment.id,
         status: assessment.status,
         executive_summary: assessment.executive_summary
@@ -49,7 +86,9 @@ export async function POST(request: Request) {
     ]),
     "Profile"
   );
+
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(scoreRows), "Scores");
+
   XLSX.utils.book_append_sheet(
     workbook,
     XLSX.utils.json_to_sheet(
@@ -64,19 +103,32 @@ export async function POST(request: Request) {
     "Evidence"
   );
 
-  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+  let buffer: Buffer;
+  try {
+    buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }) as Buffer;
+  } catch (error) {
+    return failurePage({
+      title: "The workbook could not be generated.",
+      detail: error instanceof Error ? error.message : undefined,
+      backHref: back,
+      backLabel: "Back to assessment",
+      status: 500
+    });
+  }
+
   await supabase.from("agent_runs").insert({
-    assessment_id: parsed.assessment_id,
+    assessment_id: assessmentId,
     run_type: "export",
     status: "succeeded",
-    input_payload: { assessment_id: parsed.assessment_id },
+    input_payload: { assessment_id: assessmentId },
     completed_at: new Date().toISOString()
   });
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
-      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${company?.name ?? "smeat"}-assessment.xlsx"`
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": contentDisposition(company?.name ?? "smeat")
     }
   });
 }

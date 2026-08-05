@@ -1,67 +1,273 @@
 import Link from "next/link";
-import { AppHeader } from "@/components/AppHeader";
-import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
+import { PageHead } from "@/components/PageHead";
+import { SMEAT_DIMENSIONS, findSubdimension } from "@/lib/smeat/model";
+import {
+  formatRelative,
+  opportunityBand,
+  opportunityTone,
+  pillClass
+} from "@/lib/smeat/presentation";
+import { createServiceClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+const MAX_OPPORTUNITY = 12;
+
+const RUN_LABEL: Record<string, string> = {
+  scoring: "Agent scoring run",
+  research: "Research run",
+  analysis: "Analysis run",
+  import: "Workbook imported",
+  export: "Workbook exported"
+};
+
+export default async function OverviewPage() {
+  const supabase = createServiceClient();
+
+  const [companiesResult, assessmentsResult, scoresResult, documentsResult, runsResult] =
+    await Promise.all([
+      supabase.from("companies").select("id,name").order("created_at", { ascending: false }),
+      supabase.from("assessments").select("id,company_id,status,updated_at"),
+      supabase
+        .from("assessment_scores")
+        .select("assessment_id,dimension_key,subdimension_key,opportunity_score")
+        .order("opportunity_score", { ascending: false })
+        .limit(4000),
+      supabase.from("company_documents").select("id", { count: "exact", head: true }),
+      supabase
+        .from("agent_runs")
+        .select("id,assessment_id,run_type,status,created_at,error")
+        .order("created_at", { ascending: false })
+        .limit(6)
+    ]);
+
+  const loadError =
+    companiesResult.error ?? assessmentsResult.error ?? scoresResult.error ?? runsResult.error;
+
+  if (loadError) {
+    return (
+      <>
+        <PageHead eyebrow="SMEAT / Overview" title="Overview" />
+        <div className="notice bad">
+          <strong>Could not load the workspace.</strong>
+          <span>{loadError.message}</span>
+          <span className="small">
+            Check your Supabase environment variables and confirm the migration has run.
+          </span>
+        </div>
+      </>
+    );
+  }
+
+  const companies = companiesResult.data ?? [];
+  const assessments = assessmentsResult.data ?? [];
+  const scores = scoresResult.data ?? [];
+  const runs = runsResult.data ?? [];
+  const documentCount = documentsResult.count ?? 0;
+
+  const companyNameById = new Map(companies.map((company) => [company.id, company.name]));
+  const companyIdByAssessment = new Map(
+    assessments.map((assessment) => [assessment.id, assessment.company_id])
+  );
+
+  const companyNameForAssessment = (assessmentId: string | null) => {
+    if (!assessmentId) return null;
+    const companyId = companyIdByAssessment.get(assessmentId);
+    return companyId ? (companyNameById.get(companyId) ?? null) : null;
+  };
+
+  // Readiness inverts average opportunity: fewer open gaps means a higher score.
+  const averageOpportunity =
+    scores.length > 0
+      ? scores.reduce((total, score) => total + Number(score.opportunity_score), 0) / scores.length
+      : 0;
+  const readiness = scores.length > 0 ? Math.round(100 - (averageOpportunity / MAX_OPPORTUNITY) * 100) : 0;
+  const readinessTone = readiness >= 70 ? "" : readiness >= 45 ? "warn" : "bad";
+
+  const scoredAssessments = assessments.filter((assessment) =>
+    ["scored", "reviewed", "finalized"].includes(assessment.status)
+  ).length;
+
+  const dimensionSummary = SMEAT_DIMENSIONS.map((dimension) => {
+    const rows = scores.filter((score) => score.dimension_key === dimension.key);
+    const average =
+      rows.length > 0
+        ? rows.reduce((total, score) => total + Number(score.opportunity_score), 0) / rows.length
+        : null;
+
+    return { dimension, average, count: rows.length };
+  });
+
+  const topGaps = scores.slice(0, 6);
+
   return (
-    <main className="shell">
-      <AppHeader />
+    <>
+      <PageHead
+        eyebrow="SMEAT / Opportunity Scoring Agent"
+        title="Overview"
+        lede="Portfolio readiness, dimension exposure, and the highest-value gaps across every assessed company."
+        actions={
+          <>
+            <Link className="btn secondary" href="/companies">
+              View pipeline
+            </Link>
+            <Link className="btn" href="/companies/new">
+              Add company
+            </Link>
+          </>
+        }
+      />
 
-      <section className="section">
-        <div className="grid two">
-          <div className="panel">
-            <div className="eyebrow">Production Rebuild</div>
-            <h1>Formal SMEAT Opportunity Scoring Agent</h1>
-            <p className="muted" style={{ marginTop: 16 }}>
-              Create companies, run evidence-backed AI scoring, review each SMEAT
-              subdimension, and export decision-ready opportunity reports.
-            </p>
-            <div style={{ display: "flex", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
-              <Link className="button" href="/companies/new">
-                Add Company
-              </Link>
-              <Link className="button secondary" href="/companies">
-                View Pipeline
-              </Link>
-            </div>
+      <div className="grid four">
+        <div className="stat">
+          <div className="microlabel">Portfolio readiness</div>
+          <div className="num">
+            {readiness}
+            <span className="num-unit"> /100</span>
           </div>
-
-          <div className="panel">
-            <h2>Agent Workflow</h2>
-            <div className="section">
-              {[
-                "Company profile and source capture",
-                "Document and public research intake",
-                "Canonical SMEAT subdimension scoring",
-                "Evidence, confidence, and rationale storage",
-                "Human review and override",
-                "Excel import/export for operating workflows"
-              ].map((item, index) => (
-                <p key={item}>
-                  <span className="score">{index + 1}</span> {item}
-                </p>
-              ))}
-            </div>
+          <div className={`meter ${readinessTone}`}>
+            <span style={{ width: `${Math.max(0, Math.min(100, readiness))}%` }} />
+          </div>
+          <div className="stat-note">
+            {scores.length > 0 ? `Across ${scores.length} scored subdimensions` : "No scores yet"}
           </div>
         </div>
-      </section>
 
-      <section className="section">
-        <h2>SMEAT Dimensions</h2>
-        <div className="grid three">
-          {SMEAT_DIMENSIONS.map((dimension) => (
-            <article className="panel" key={dimension.key}>
-              <h3>{dimension.label}</h3>
-              <p className="muted" style={{ marginTop: 8 }}>
-                {dimension.description}
-              </p>
-              <p className="muted" style={{ marginTop: 12 }}>
-                {dimension.subdimensions.length} subdimensions
-              </p>
-            </article>
-          ))}
+        <div className="stat">
+          <div className="microlabel">Average opportunity</div>
+          <div className="num">{averageOpportunity.toFixed(1)}</div>
+          <div>
+            <span className={pillClass(opportunityTone(averageOpportunity))}>
+              {opportunityBand(averageOpportunity)}
+            </span>
+          </div>
+          <div className="stat-note">Scale 0–12 per subdimension</div>
         </div>
-      </section>
-    </main>
+
+        <div className="stat">
+          <div className="microlabel">Companies</div>
+          <div className="num">{companies.length}</div>
+          <div className="stat-note">
+            {scoredAssessments} of {assessments.length} assessments scored
+          </div>
+        </div>
+
+        <div className="stat">
+          <div className="microlabel">Documents</div>
+          <div className="num">{documentCount}</div>
+          <div className="stat-note">Source evidence uploaded</div>
+        </div>
+      </div>
+
+      <div className="section grid split">
+        <article className="card">
+          <div className="card-head">
+            <h2>Dimension opportunity summary</h2>
+            <span className="microlabel">Avg 0–12</span>
+          </div>
+          <div className="card-body">
+            {dimensionSummary.map(({ dimension, average, count }) => (
+              <div className="between" key={dimension.key}>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{dimension.label}</div>
+                  <div className="hint">
+                    {count > 0
+                      ? `${count} scored subdimension${count === 1 ? "" : "s"}`
+                      : "Not yet scored"}
+                  </div>
+                </div>
+                {average === null ? (
+                  <span className="pill ghost">No data</span>
+                ) : (
+                  <span className={pillClass(opportunityTone(average))}>
+                    {average.toFixed(1)} {opportunityBand(average)}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="card">
+          <div className="card-head">
+            <h2>Top gaps</h2>
+            <span className="microlabel">Highest opportunity</span>
+          </div>
+          <div className="card-body">
+            {topGaps.length === 0 ? (
+              <p className="muted small">
+                Run an agent scoring pass to surface the highest-value gaps.
+              </p>
+            ) : (
+              <div>
+                {topGaps.map((gap, index) => {
+                  const subdimension = findSubdimension(gap.dimension_key, gap.subdimension_key);
+                  const company = companyNameForAssessment(gap.assessment_id);
+
+                  return (
+                    <div className="gapitem" key={`${gap.assessment_id}-${index}`}>
+                      <span className="gapdot" aria-hidden="true">
+                        !
+                      </span>
+                      <div>
+                        <div style={{ fontWeight: 600 }}>
+                          {subdimension?.label ?? gap.subdimension_key}
+                        </div>
+                        <div className="hint">
+                          {company ?? "Unknown company"} · Opportunity{" "}
+                          {Number(gap.opportunity_score).toFixed(0)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </article>
+      </div>
+
+      <div className="section">
+        <article className="card plain">
+          <div className="card-head">
+            <h2>Recent activity</h2>
+            <Link className="btn quiet small" href="/assessments">
+              All assessments
+            </Link>
+          </div>
+
+          {runs.length === 0 ? (
+            <div className="empty">
+              <strong>No agent activity yet.</strong>
+              <span>Imports, exports, and scoring runs will appear here.</span>
+            </div>
+          ) : (
+            <div className="feed">
+              {runs.map((run) => {
+                const company = companyNameForAssessment(run.assessment_id);
+
+                return (
+                  <div className="feeditem" key={run.id}>
+                    <span className="feedicon" aria-hidden="true">
+                      {run.status === "failed" ? "!" : run.status === "running" ? "…" : "✓"}
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 600 }}>
+                        {RUN_LABEL[run.run_type] ?? run.run_type}
+                      </div>
+                      <div className="hint">
+                        {company ?? "Unlinked"} ·{" "}
+                        {run.status === "failed" && run.error ? run.error : run.status}
+                      </div>
+                    </div>
+                    <span className="feedtime">{formatRelative(run.created_at)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </article>
+      </div>
+    </>
   );
 }

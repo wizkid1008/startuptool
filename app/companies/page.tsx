@@ -1,37 +1,42 @@
 import Link from "next/link";
-import { AppHeader } from "@/components/AppHeader";
+import { PageHead } from "@/components/PageHead";
+import { formatRelative } from "@/lib/smeat/presentation";
 import { createServiceClient } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
   const supabase = createServiceClient();
   const { data: companies, error } = await supabase
     .from("companies")
     .select("id,name,industry,stage,geography,status,created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(200);
 
   return (
-    <main className="shell">
-      <AppHeader />
-      <section className="section">
-        <div className="topbar">
-          <div>
-            <h1>Companies</h1>
-            <p className="muted">Pipeline for SMEAT opportunity scoring.</p>
-          </div>
-          <Link className="button" href="/companies/new">
-            Add Company
+    <>
+      <PageHead
+        eyebrow="SMEAT / Companies"
+        title="Companies"
+        lede="The assessment pipeline. Open a company to upload evidence and run a scoring pass."
+        actions={
+          <Link className="btn" href="/companies/new">
+            Add company
           </Link>
-        </div>
+        }
+      />
 
-        {error ? (
-          <div className="panel">
-            <p style={{ color: "var(--danger)" }}>{error.message}</p>
-            <p className="muted" style={{ marginTop: 8 }}>
-              Check your Supabase environment variables and run the migration.
-            </p>
-          </div>
-        ) : (
-          <div className="panel" style={{ overflowX: "auto" }}>
+      {error ? (
+        <div className="notice bad">
+          <strong>Could not load companies.</strong>
+          <span>{error.message}</span>
+          <span className="small">
+            Check your Supabase environment variables and confirm the migration has run.
+          </span>
+        </div>
+      ) : (
+        <div className="tablewrap">
+          <div className="tablescroll">
             <table>
               <thead>
                 <tr>
@@ -40,6 +45,7 @@ export default async function CompaniesPage() {
                   <th>Stage</th>
                   <th>Geography</th>
                   <th>Status</th>
+                  <th>Added</th>
                 </tr>
               </thead>
               <tbody>
@@ -48,24 +54,40 @@ export default async function CompaniesPage() {
                     <td>
                       <Link href={`/companies/${company.id}`}>{company.name}</Link>
                     </td>
-                    <td>{company.industry ?? "-"}</td>
-                    <td>{company.stage ?? "-"}</td>
-                    <td>{company.geography ?? "-"}</td>
-                    <td>{company.status}</td>
+                    <td className="muted">{company.industry ?? "—"}</td>
+                    <td className="muted">{company.stage ?? "—"}</td>
+                    <td className="muted">{company.geography ?? "—"}</td>
+                    <td>
+                      <span
+                        className={
+                          company.status === "archived" ? "pill ghost" : "pill good"
+                        }
+                      >
+                        {company.status}
+                      </span>
+                    </td>
+                    <td className="muted small nowrap">{formatRelative(company.created_at)}</td>
                   </tr>
                 ))}
+
                 {companies?.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="muted">
-                      No companies yet.
+                    <td colSpan={6}>
+                      <div className="empty">
+                        <strong>No companies yet.</strong>
+                        <span>Add your first company to begin a SMEAT assessment.</span>
+                        <Link className="btn small" href="/companies/new" style={{ marginTop: 8 }}>
+                          Add company
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ) : null}
               </tbody>
             </table>
           </div>
-        )}
-      </section>
-    </main>
+        </div>
+      )}
+    </>
   );
 }

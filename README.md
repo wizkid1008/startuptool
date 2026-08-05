@@ -81,12 +81,30 @@ Use the subdimension keys from `lib/smeat/model.ts`.
 
 The schema includes RLS policies, but this first production slice uses the Supabase service role from server routes so it can run before auth UI is added. The next hardening step is to add Supabase Auth, session-aware server clients, organization creation, and authenticated route protection.
 
+## Interface
+
+The UI follows the Thrushcross Verify design language: light ground, hairline
+rules, tight-tracking display type, uppercase letterspaced micro-labels, and
+status carried by pills rather than colour-filled panels.
+
+- `app/globals.css` holds the whole token layer and every primitive class.
+- `components/Masthead.tsx` + `components/SideNav.tsx` compose the app shell in
+  `app/layout.tsx`.
+- `lib/smeat/presentation.ts` maps SMEAT scores to pill tones and bands, so the
+  scales are interpreted in exactly one place.
+
 ## Next Build Steps
 
-1. Add Supabase Auth and organization onboarding.
-2. Add document upload to Supabase Storage.
-3. Add document parsing and evidence extraction.
-4. Add human review/override editing for score rows.
-5. Add agent run progress states and retry controls.
+1. Add Supabase Auth and organization onboarding. Note that `organization_id`
+   is currently `NULL` on every company row, and the RLS policies match on it —
+   existing rows need a backfill before authenticated clients will see them.
+2. Replace the deprecated `claude-sonnet-4-20250514` model, raise `max_tokens`
+   (30 subdimensions overflows the current 6000), and switch to structured
+   outputs so the JSON-extraction fallback can be deleted.
+3. Move agent scoring to a background job; it currently runs inside the request.
+4. Add document parsing for PDFs and images — only text, Markdown, and CSV are
+   read into agent context today.
+5. Add human review/override editing for score rows (`reviewer_note` and
+   `source` already exist in the schema but are unreachable from the UI).
 6. Add tests for scoring, validation, import, export, and RLS.
 7. Add deployment config for Vercel and Supabase environments.

@@ -1,5 +1,14 @@
+import { Fragment } from "react";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
-import { computeOpportunityScore, impactScale, maturityScale } from "@/lib/smeat/scoring";
+import {
+  impactLabel,
+  impactTone,
+  maturityLabel,
+  maturityTone,
+  opportunityTone,
+  pillClass
+} from "@/lib/smeat/presentation";
+import { computeOpportunityScore } from "@/lib/smeat/scoring";
 
 type ScoreRow = {
   dimension_key: string;
@@ -18,65 +27,79 @@ export function ScoreMatrix({ scores }: { scores: ScoreRow[] }) {
   );
 
   return (
-    <div className="panel" style={{ overflowX: "auto" }}>
-      <table>
-        <thead>
-          <tr>
-            <th>Dimension</th>
-            <th>Subdimension</th>
-            <th>Maturity</th>
-            <th>Impact</th>
-            <th>Opportunity</th>
-            <th>Confidence</th>
-            <th>Rationale</th>
-          </tr>
-        </thead>
-        <tbody>
-          {SMEAT_DIMENSIONS.flatMap((dimension) =>
-            dimension.subdimensions.map((subdimension) => {
-              const score = byKey.get(`${dimension.key}:${subdimension.key}`);
-              const opportunity =
-                score?.opportunity_score ??
-                (score
-                  ? computeOpportunityScore(score.maturity_score, score.impact_score)
-                  : null);
-
-              return (
-                <tr key={`${dimension.key}:${subdimension.key}`}>
-                  <td>{dimension.label}</td>
-                  <td>{subdimension.label}</td>
-                  <td>
-                    {score ? (
-                      <span className="score">
-                        {score.maturity_score}{" "}
-                        {maturityScale[score.maturity_score as keyof typeof maturityScale]}
-                      </span>
-                    ) : (
-                      <span className="muted">Not scored</span>
-                    )}
+    <div className="tablewrap">
+      <div className="tablescroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Subdimension</th>
+              <th>Maturity</th>
+              <th>Impact</th>
+              <th>Opportunity</th>
+              <th>Confidence</th>
+              <th>Rationale</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SMEAT_DIMENSIONS.map((dimension) => (
+              <Fragment key={dimension.key}>
+                <tr className="grouprow">
+                  <td colSpan={6}>
+                    <span className="microlabel">{dimension.label}</span>
                   </td>
-                  <td>
-                    {score ? (
-                      <span className="score">
-                        {score.impact_score} {impactScale[score.impact_score as keyof typeof impactScale]}
-                      </span>
-                    ) : (
-                      <span className="muted">Not scored</span>
-                    )}
-                  </td>
-                  <td>{opportunity === null ? "-" : Number(opportunity).toFixed(1)}</td>
-                  <td>
-                    {score?.confidence === null || score?.confidence === undefined
-                      ? "-"
-                      : `${Math.round(score.confidence * 100)}%`}
-                  </td>
-                  <td className="muted">{score?.rationale ?? ""}</td>
                 </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+
+                {dimension.subdimensions.map((subdimension) => {
+                  const score = byKey.get(`${dimension.key}:${subdimension.key}`);
+
+                  if (!score) {
+                    return (
+                      <tr key={subdimension.key}>
+                        <td>{subdimension.label}</td>
+                        <td colSpan={5} className="muted small">
+                          Not scored
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  const opportunity = Number(
+                    score.opportunity_score ??
+                      computeOpportunityScore(score.maturity_score, score.impact_score)
+                  );
+
+                  return (
+                    <tr key={subdimension.key}>
+                      <td>{subdimension.label}</td>
+                      <td>
+                        <span className={pillClass(maturityTone(score.maturity_score))}>
+                          {score.maturity_score} {maturityLabel(score.maturity_score)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={pillClass(impactTone(score.impact_score))}>
+                          {score.impact_score} {impactLabel(score.impact_score)}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={pillClass(opportunityTone(opportunity))}>
+                          {opportunity.toFixed(0)}
+                        </span>
+                      </td>
+                      <td className="tnum muted">
+                        {score.confidence === null || score.confidence === undefined
+                          ? "—"
+                          : `${Math.round(score.confidence * 100)}%`}
+                      </td>
+                      <td className="wrap">{score.rationale ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

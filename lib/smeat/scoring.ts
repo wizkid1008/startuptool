@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { findSubdimension } from "@/lib/smeat/model";
 
 export const maturityScale = {
   1: "Advanced",
@@ -44,6 +45,24 @@ export const agentScoreResponseSchema = z.object({
   company_name: z.string(),
   executive_summary: z.string(),
   scores: z.array(scoreSchema)
+});
+
+/**
+ * A hallucinated key would persist and export fine but never render, since the
+ * UI walks SMEAT_DIMENSIONS and looks scores up by key. Reject instead.
+ */
+export const canonicalScoreSchema = scoreSchema.superRefine((score, ctx) => {
+  if (!findSubdimension(score.dimension_key, score.subdimension_key)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["subdimension_key"],
+      message: `Unknown SMEAT key "${score.dimension_key}/${score.subdimension_key}"`
+    });
+  }
+});
+
+export const canonicalAgentScoreResponseSchema = agentScoreResponseSchema.extend({
+  scores: z.array(canonicalScoreSchema)
 });
 
 export type AgentScoreResponse = z.infer<typeof agentScoreResponseSchema>;

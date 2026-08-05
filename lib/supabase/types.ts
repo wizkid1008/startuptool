@@ -30,6 +30,7 @@ export type Database = {
           name: string;
         };
         Update: Partial<Database["public"]["Tables"]["companies"]["Row"]>;
+        Relationships: [];
       };
       assessments: {
         Row: {
@@ -46,6 +47,7 @@ export type Database = {
           company_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["assessments"]["Row"]>;
+        Relationships: [];
       };
       assessment_scores: {
         Row: {
@@ -72,6 +74,7 @@ export type Database = {
           opportunity_score: number;
         };
         Update: Partial<Database["public"]["Tables"]["assessment_scores"]["Row"]>;
+        Relationships: [];
       };
       assessment_evidence: {
         Row: {
@@ -90,6 +93,7 @@ export type Database = {
           evidence_type: string;
         };
         Update: Partial<Database["public"]["Tables"]["assessment_evidence"]["Row"]>;
+        Relationships: [];
       };
       company_documents: {
         Row: {
@@ -111,6 +115,7 @@ export type Database = {
           size_bytes: number;
         };
         Update: Partial<Database["public"]["Tables"]["company_documents"]["Row"]>;
+        Relationships: [];
       };
       agent_runs: {
         Row: {
@@ -131,7 +136,12 @@ export type Database = {
           status: string;
         };
         Update: Partial<Database["public"]["Tables"]["agent_runs"]["Row"]>;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };
