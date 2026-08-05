@@ -44,6 +44,13 @@ jobs:
           set -o pipefail
           npm run typecheck 2>&1 | tee /tmp/typecheck.log
 
+      # Fast, and guards the scoring model against the workbook.
+      - name: Test
+        id: test
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/test.log
+
       # Build runs before lint deliberately: build is the gate that tells us
       # whether the app is deployable, lint is style.
       - name: Build
@@ -69,7 +76,7 @@ jobs:
               | sed -e 's/%/%25/g' -e 's/\r/%0D/g' \
               | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
           }
-          for step in typecheck build lint; do
+          for step in typecheck test build lint; do
             log="/tmp/${step}.log"
             if [ -f "$log" ]; then
               echo "::error title=${step} output::$(escape "$log")"
