@@ -1,4 +1,2 @@
 __pycache__/
 
-# Cloudflare Workers static asset output
-dist/
