@@ -1,0 +1,13 @@
+{
+  // Static-assets-only Worker: no `main` entry point, nothing to execute.
+  // Cloudflare just serves the files in `assets.directory`.
+  //
+  // That directory is built by the build command rather than pointed at the
+  // repo root, so backend/, api/, node_modules/ and the docs are not shipped
+  // to the edge. GitHub Pages continues to serve from the root unaffected.
+  "name": "startuptool",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
