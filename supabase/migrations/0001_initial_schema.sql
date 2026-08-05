@@ -141,6 +141,24 @@ alter table public.agent_runs enable row level security;
 alter table public.excel_imports enable row level security;
 alter table public.excel_exports enable row level security;
 
+-- Postgres has no `create policy if not exists`, so pasting this file a second
+-- time would fail here and leave the schema half-applied. Dropping first makes
+-- the whole file safe to re-run.
+drop policy if exists "profiles can read own profile" on public.profiles;
+drop policy if exists "organization members can read companies" on public.companies;
+drop policy if exists "organization members can manage companies" on public.companies;
+drop policy if exists "organization members can read assessments" on public.assessments;
+drop policy if exists "organization members can manage assessments" on public.assessments;
+drop policy if exists "organization members can read documents" on public.company_documents;
+drop policy if exists "organization members can manage documents" on public.company_documents;
+drop policy if exists "organization members can read scores" on public.assessment_scores;
+drop policy if exists "organization members can manage scores" on public.assessment_scores;
+drop policy if exists "organization members can read evidence" on public.assessment_evidence;
+drop policy if exists "organization members can manage evidence" on public.assessment_evidence;
+drop policy if exists "organization members can read agent runs" on public.agent_runs;
+drop policy if exists "organization members can read imports" on public.excel_imports;
+drop policy if exists "organization members can read exports" on public.excel_exports;
+
 create policy "profiles can read own profile"
   on public.profiles for select
   using (auth.uid() = id);
