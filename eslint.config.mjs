@@ -10,5 +10,8 @@ export default [
   {
     ignores: [".next/**", "node_modules/**", "next-env.d.ts"]
   },
-  ...compat.extends("next/core-web-vitals", "next/typescript")
+  // Only core-web-vitals. `next/typescript` adds a second plugin resolution
+  // path for very little benefit here, since `tsc --noEmit` already gates type
+  // correctness in the typecheck step.
+  ...compat.extends("next/core-web-vitals")
 ];
