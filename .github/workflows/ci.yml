@@ -1,0 +1,48 @@
+name: CI
+
+# Scoped to the SMEAT branch on purpose. `main` is an unrelated static site
+# with a different package.json and no typecheck script, so running this there
+# would only produce noise.
+on:
+  push:
+    branches: ["codex/smeat-nextjs-supabase-rebuild"]
+  pull_request:
+    branches: ["codex/smeat-nextjs-supabase-rebuild"]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Typecheck, lint, build
+    runs-on: ubuntu-latest
+
+    env:
+      # Placeholders only. Every page is force-dynamic, so nothing is
+      # prerendered and no real credentials are needed to compile. These exist
+      # so the build fails on genuine type or lint errors rather than on
+      # missing configuration.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+      ANTHROPIC_API_KEY: placeholder-anthropic-key
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # `npm ci` and setup-node's npm cache both require a lockfile, and this
+      # repo has none. Worth committing a package-lock.json later so CI builds
+      # are reproducible.
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
