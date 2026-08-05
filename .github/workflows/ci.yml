@@ -39,13 +39,39 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Typecheck
-        run: npm run typecheck
+        id: typecheck
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee /tmp/typecheck.log
 
       # Build runs before lint deliberately: build is the gate that tells us
-      # whether the app is deployable, lint is style. Ordering it first means a
-      # lint failure still leaves us knowing the build's status.
+      # whether the app is deployable, lint is style.
       - name: Build
-        run: npm run build
+        id: build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee /tmp/build.log
 
       - name: Lint
-        run: npm run lint
+        id: lint
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee /tmp/lint.log
+
+      # Step logs need authentication to read, but annotations are public.
+      # Echo the tail of whichever step failed into an annotation so failures
+      # are diagnosable from the API without a token.
+      - name: Surface failure output
+        if: failure()
+        run: |
+          escape() {
+            tail -c 4000 "$1" \
+              | sed -e 's/%/%25/g' -e 's/\r/%0D/g' \
+              | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g'
+          }
+          for step in typecheck build lint; do
+            log="/tmp/${step}.log"
+            if [ -f "$log" ]; then
+              echo "::error title=${step} output::$(escape "$log")"
+            fi
+          done
