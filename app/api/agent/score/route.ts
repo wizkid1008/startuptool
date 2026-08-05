@@ -5,7 +5,7 @@ import { failurePage, formatIssues, seeOther } from "@/lib/http";
 import { buildScoringPrompt } from "@/lib/smeat/prompts";
 import {
   canonicalAgentScoreResponseSchema,
-  computeOpportunityScore
+  computeCriticalityScore
 } from "@/lib/smeat/scoring";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
       subdimension_key: score.subdimension_key,
       maturity_score: score.maturity_score,
       impact_score: score.impact_score,
-      opportunity_score: computeOpportunityScore(score.maturity_score, score.impact_score),
+      criticality_score: computeCriticalityScore(score.maturity_score, score.impact_score),
       confidence: score.confidence ?? null,
       source: "ai",
       rationale: score.rationale

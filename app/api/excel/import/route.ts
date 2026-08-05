@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import { z } from "zod";
 import { failurePage, seeOther } from "@/lib/http";
 import { findSubdimension } from "@/lib/smeat/model";
-import { computeOpportunityScore } from "@/lib/smeat/scoring";
+import { computeCriticalityScore } from "@/lib/smeat/scoring";
 import { createServiceClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
       subdimension_key: row.subdimension_key,
       maturity_score: row.maturity_score,
       impact_score: row.impact_score,
-      opportunity_score: computeOpportunityScore(row.maturity_score, row.impact_score),
+      criticality_score: computeCriticalityScore(row.maturity_score, row.impact_score),
       confidence: row.confidence ?? null,
       source: "import",
       rationale: row.rationale || null

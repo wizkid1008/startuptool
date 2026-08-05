@@ -4,8 +4,8 @@ import { SideNav } from "@/components/SideNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SMEAT — Opportunity Scoring Agent",
-  description: "A formal SMEAT company opportunity scoring workflow."
+  title: "SMEAT — Assessment Agent",
+  description: "A formal SMEAT company criticality scoring workflow."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

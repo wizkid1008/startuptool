@@ -7,16 +7,16 @@ import { findSubdimension } from "@/lib/smeat/model";
 import {
   assessmentStatusTone,
   formatRelative,
-  opportunityBand,
-  opportunityTone,
+  criticalityBand,
+  criticalityTone,
+  readinessScore,
+  readinessTone,
   pillClass
 } from "@/lib/smeat/presentation";
 import { createServiceClient } from "@/lib/supabase/server";
 import { displayUrl, safeExternalUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
-
-const MAX_OPPORTUNITY = 12;
 
 export default async function AssessmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,7 +28,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       .from("assessment_scores")
       .select("*")
       .eq("assessment_id", id)
-      .order("opportunity_score", { ascending: false }),
+      .order("criticality_score", { ascending: false }),
     supabase
       .from("assessment_evidence")
       .select("*")
@@ -48,16 +48,15 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
     .single();
 
   const rows = scores ?? [];
-  const averageOpportunity =
+  const averageCriticality =
     rows.length > 0
-      ? rows.reduce((total, score) => total + Number(score.opportunity_score), 0) / rows.length
+      ? rows.reduce((total, score) => total + Number(score.criticality_score), 0) / rows.length
       : 0;
-  const readiness =
-    rows.length > 0 ? Math.round(100 - (averageOpportunity / MAX_OPPORTUNITY) * 100) : 0;
-  const readinessTone = readiness >= 70 ? "" : readiness >= 45 ? "warn" : "bad";
+  const readiness = readinessScore(averageCriticality);
+  const tone = readinessTone(readiness);
 
-  // The query already ranks by opportunity — surface it instead of discarding it.
-  const topOpportunities = rows.slice(0, 8);
+  // The query already ranks by criticality — surface it instead of discarding it.
+  const topCriticality = rows.slice(0, 8);
 
   return (
     <>
@@ -117,17 +116,17 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
             {readiness}
             <span className="num-unit"> /100</span>
           </div>
-          <div className={`meter ${readinessTone}`}>
+          <div className={`meter ${tone}`}>
             <span style={{ width: `${Math.max(0, Math.min(100, readiness))}%` }} />
           </div>
         </div>
 
         <div className="stat">
-          <div className="microlabel">Average opportunity</div>
-          <div className="num">{averageOpportunity.toFixed(1)}</div>
+          <div className="microlabel">Average criticality</div>
+          <div className="num">{averageCriticality.toFixed(1)}</div>
           <div>
-            <span className={pillClass(opportunityTone(averageOpportunity))}>
-              {opportunityBand(averageOpportunity)}
+            <span className={pillClass(criticalityTone(averageCriticality))}>
+              {criticalityBand(averageCriticality)}
             </span>
           </div>
         </div>
@@ -159,20 +158,20 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       <section className="section grid split">
         <article className="card">
           <div className="card-head">
-            <h2>Top opportunities</h2>
-            <span className="microlabel">Ranked 0–12</span>
+            <h2>Top criticality</h2>
+            <span className="microlabel">Ranked 1–16</span>
           </div>
           <div className="card-body">
-            {topOpportunities.length === 0 ? (
+            {topCriticality.length === 0 ? (
               <p className="muted small">No scores yet. Run the agent to populate this view.</p>
             ) : (
               <div>
-                {topOpportunities.map((score) => {
+                {topCriticality.map((score) => {
                   const subdimension = findSubdimension(
                     score.dimension_key,
                     score.subdimension_key
                   );
-                  const value = Number(score.opportunity_score);
+                  const value = Number(score.criticality_score);
 
                   return (
                     <div className="between" key={score.id} style={{ padding: "9px 0" }}>
@@ -182,8 +181,8 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                         </div>
                         <div className="hint">{score.dimension_key}</div>
                       </div>
-                      <span className={pillClass(opportunityTone(value))}>
-                        {value.toFixed(0)} {opportunityBand(value)}
+                      <span className={pillClass(criticalityTone(value))}>
+                        {value.toFixed(0)} {criticalityBand(value)}
                       </span>
                     </div>
                   );

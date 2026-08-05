@@ -25,7 +25,7 @@ export const SMEAT_DIMENSIONS: SmeatDimension[] = [
     label: "Customer",
     description: "Products, markets, acquisition, sales, pricing, and experience.",
     subdimensions: [
-      { key: "products_markets_channels", label: "Products, Markets & Channels" },
+      { key: "products_markets_channels", label: "Products, Markets and Channels" },
       { key: "marketing_branding", label: "Marketing and Branding" },
       { key: "sales_pricing", label: "Sales and Pricing" },
       { key: "customer_experience", label: "Customer Experience" }
@@ -48,11 +48,11 @@ export const SMEAT_DIMENSIONS: SmeatDimension[] = [
     label: "Operations",
     description: "Supply chain, operations assets, logistics, strategy, and excellence.",
     subdimensions: [
-      { key: "sourcing_supply_chain", label: "Sourcing & Supply Chain" },
-      { key: "internal_operations_assets", label: "Internal Operations & Assets" },
-      { key: "distribution_logistics", label: "Distribution & Logistics" },
+      { key: "sourcing_supply_chain", label: "Sourcing and Supply Chain" },
+      { key: "internal_operations_assets", label: "Internal Operations and Assets" },
+      { key: "distribution_logistics", label: "Distribution and Logistics" },
       { key: "operations_strategy", label: "Operations Strategy" },
-      { key: "operational_excellence", label: "Operational Excellence" }
+      { key: "operational_excellence", label: "Operational Excellence and Continuous Improvement" }
     ]
   },
   {
@@ -60,9 +60,9 @@ export const SMEAT_DIMENSIONS: SmeatDimension[] = [
     label: "Finance",
     description: "Controls, stakeholders, finance organization, data, and funding growth.",
     subdimensions: [
-      { key: "finance_process_control", label: "Finance Process & Control" },
+      { key: "finance_process_control", label: "Finance Process and Control" },
       { key: "stakeholder_management", label: "Stakeholder Management" },
-      { key: "people_organization", label: "People & Organization" },
+      { key: "people_organization", label: "People and Organization" },
       { key: "data_technology", label: "Data and Technology" },
       { key: "funding_growth", label: "Funding Growth" }
     ]
@@ -84,7 +84,7 @@ export const SMEAT_DIMENSIONS: SmeatDimension[] = [
     subdimensions: [
       { key: "governance", label: "Governance" },
       { key: "risk_management", label: "Risk Management" },
-      { key: "policy_compliance", label: "Policy & Compliance" },
+      { key: "policy_compliance", label: "Policy and Compliance" },
       { key: "stakeholder_management", label: "Stakeholder Management" }
     ]
   },

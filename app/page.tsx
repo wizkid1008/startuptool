@@ -3,15 +3,15 @@ import { PageHead } from "@/components/PageHead";
 import { SMEAT_DIMENSIONS, findSubdimension } from "@/lib/smeat/model";
 import {
   formatRelative,
-  opportunityBand,
-  opportunityTone,
+  criticalityBand,
+  criticalityTone,
+  readinessScore,
+  readinessTone,
   pillClass
 } from "@/lib/smeat/presentation";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-
-const MAX_OPPORTUNITY = 12;
 
 const RUN_LABEL: Record<string, string> = {
   scoring: "Agent scoring run",
@@ -30,8 +30,8 @@ export default async function OverviewPage() {
       supabase.from("assessments").select("id,company_id,status,updated_at"),
       supabase
         .from("assessment_scores")
-        .select("assessment_id,dimension_key,subdimension_key,opportunity_score")
-        .order("opportunity_score", { ascending: false })
+        .select("assessment_id,dimension_key,subdimension_key,criticality_score")
+        .order("criticality_score", { ascending: false })
         .limit(4000),
       supabase.from("company_documents").select("id", { count: "exact", head: true }),
       supabase
@@ -76,13 +76,13 @@ export default async function OverviewPage() {
     return companyId ? (companyNameById.get(companyId) ?? null) : null;
   };
 
-  // Readiness inverts average opportunity: fewer open gaps means a higher score.
-  const averageOpportunity =
+  // Readiness inverts average criticality across the 1–16 range.
+  const averageCriticality =
     scores.length > 0
-      ? scores.reduce((total, score) => total + Number(score.opportunity_score), 0) / scores.length
+      ? scores.reduce((total, score) => total + Number(score.criticality_score), 0) / scores.length
       : 0;
-  const readiness = scores.length > 0 ? Math.round(100 - (averageOpportunity / MAX_OPPORTUNITY) * 100) : 0;
-  const readinessTone = readiness >= 70 ? "" : readiness >= 45 ? "warn" : "bad";
+  const readiness = readinessScore(averageCriticality);
+  const tone = readinessTone(readiness);
 
   const scoredAssessments = assessments.filter((assessment) =>
     ["scored", "reviewed", "finalized"].includes(assessment.status)
@@ -92,7 +92,7 @@ export default async function OverviewPage() {
     const rows = scores.filter((score) => score.dimension_key === dimension.key);
     const average =
       rows.length > 0
-        ? rows.reduce((total, score) => total + Number(score.opportunity_score), 0) / rows.length
+        ? rows.reduce((total, score) => total + Number(score.criticality_score), 0) / rows.length
         : null;
 
     return { dimension, average, count: rows.length };
@@ -103,7 +103,7 @@ export default async function OverviewPage() {
   return (
     <>
       <PageHead
-        eyebrow="SMEAT / Opportunity Scoring Agent"
+        eyebrow="SMEAT / Assessment Agent"
         title="Overview"
         lede="Portfolio readiness, dimension exposure, and the highest-value gaps across every assessed company."
         actions={
@@ -125,7 +125,7 @@ export default async function OverviewPage() {
             {readiness}
             <span className="num-unit"> /100</span>
           </div>
-          <div className={`meter ${readinessTone}`}>
+          <div className={`meter ${tone}`}>
             <span style={{ width: `${Math.max(0, Math.min(100, readiness))}%` }} />
           </div>
           <div className="stat-note">
@@ -134,14 +134,14 @@ export default async function OverviewPage() {
         </div>
 
         <div className="stat">
-          <div className="microlabel">Average opportunity</div>
-          <div className="num">{averageOpportunity.toFixed(1)}</div>
+          <div className="microlabel">Average criticality</div>
+          <div className="num">{averageCriticality.toFixed(1)}</div>
           <div>
-            <span className={pillClass(opportunityTone(averageOpportunity))}>
-              {opportunityBand(averageOpportunity)}
+            <span className={pillClass(criticalityTone(averageCriticality))}>
+              {criticalityBand(averageCriticality)}
             </span>
           </div>
-          <div className="stat-note">Scale 0–12 per subdimension</div>
+          <div className="stat-note">Scale 1–16 per subdimension</div>
         </div>
 
         <div className="stat">
@@ -162,8 +162,8 @@ export default async function OverviewPage() {
       <div className="section grid split">
         <article className="card">
           <div className="card-head">
-            <h2>Dimension opportunity summary</h2>
-            <span className="microlabel">Avg 0–12</span>
+            <h2>Dimension criticality summary</h2>
+            <span className="microlabel">Avg 1–16</span>
           </div>
           <div className="card-body">
             {dimensionSummary.map(({ dimension, average, count }) => (
@@ -179,8 +179,8 @@ export default async function OverviewPage() {
                 {average === null ? (
                   <span className="pill ghost">No data</span>
                 ) : (
-                  <span className={pillClass(opportunityTone(average))}>
-                    {average.toFixed(1)} {opportunityBand(average)}
+                  <span className={pillClass(criticalityTone(average))}>
+                    {average.toFixed(1)} {criticalityBand(average)}
                   </span>
                 )}
               </div>
@@ -191,7 +191,7 @@ export default async function OverviewPage() {
         <article className="card">
           <div className="card-head">
             <h2>Top gaps</h2>
-            <span className="microlabel">Highest opportunity</span>
+            <span className="microlabel">Highest criticality</span>
           </div>
           <div className="card-body">
             {topGaps.length === 0 ? (
@@ -215,7 +215,7 @@ export default async function OverviewPage() {
                         </div>
                         <div className="hint">
                           {company ?? "Unknown company"} · Opportunity{" "}
-                          {Number(gap.opportunity_score).toFixed(0)}
+                          {Number(gap.criticality_score).toFixed(0)}
                         </div>
                       </div>
                     </div>

@@ -1,4 +1,9 @@
-import { impactScale, maturityScale } from "@/lib/smeat/scoring";
+import {
+  impactScale,
+  maturityScale,
+  MAX_CRITICALITY,
+  MIN_CRITICALITY
+} from "@/lib/smeat/scoring";
 
 export type Tone = "good" | "warn" | "bad" | "info" | "ghost" | "neutral";
 
@@ -10,30 +15,51 @@ export function maturityTone(score: number): Tone {
   return "bad";
 }
 
-/** Impact: 1 Critical (urgent) … 4 Not Needed. */
+/** Impact: 4 Critical (urgent) … 1 Not Needed. Runs opposite to maturity. */
 export function impactTone(score: number): Tone {
-  if (score <= 1) return "bad";
-  if (score === 2) return "warn";
-  if (score === 3) return "neutral";
+  if (score >= 4) return "bad";
+  if (score === 3) return "warn";
+  if (score === 2) return "neutral";
   return "ghost";
 }
 
 /**
- * Opportunity runs 0–12. A high score means a weak capability the business
- * critically needs, so it reads as a gap, not an achievement.
+ * Criticality runs 1–16 (maturity × impact). A high score means a weak
+ * capability the business critically needs, so it reads as a gap.
  */
-export function opportunityTone(score: number): Tone {
-  if (score >= 8) return "bad";
-  if (score >= 4) return "warn";
-  if (score >= 1) return "info";
+export function criticalityTone(score: number): Tone {
+  if (score >= 12) return "bad";
+  if (score >= 8) return "warn";
+  if (score >= 4) return "info";
   return "neutral";
 }
 
-export function opportunityBand(score: number) {
-  if (score >= 8) return "Critical";
-  if (score >= 4) return "Elevated";
-  if (score >= 1) return "Minor";
-  return "None";
+export function criticalityBand(score: number) {
+  if (score >= 12) return "Critical";
+  if (score >= 8) return "High";
+  if (score >= 4) return "Moderate";
+  return "Low";
+}
+
+/** Percentage of the 1–16 range, for meters. */
+export function criticalityPercent(score: number) {
+  return Math.max(0, Math.min(100, (score / MAX_CRITICALITY) * 100));
+}
+
+/**
+ * Readiness inverts average criticality onto 0–100. Criticality bottoms out at
+ * 1 rather than 0, so the span is measured from MIN_CRITICALITY — otherwise a
+ * perfect assessment would score 94 instead of 100.
+ */
+export function readinessScore(averageCriticality: number | null) {
+  if (averageCriticality === null) return 0;
+  const span = MAX_CRITICALITY - MIN_CRITICALITY;
+  const pct = 100 - ((averageCriticality - MIN_CRITICALITY) / span) * 100;
+  return Math.round(Math.max(0, Math.min(100, pct)));
+}
+
+export function readinessTone(readiness: number) {
+  return readiness >= 70 ? "" : readiness >= 45 ? "warn" : "bad";
 }
 
 export function maturityLabel(score: number) {

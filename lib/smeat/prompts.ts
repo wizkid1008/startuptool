@@ -39,10 +39,19 @@ ${JSON.stringify(
 Canonical SMEAT scoring surface:
 ${JSON.stringify(dimensions, null, 2)}
 
-Scales:
-- maturity_score: 1=Advanced, 2=Developing, 3=Emerging, 4=Nascent
-- impact_score: 1=Critical, 2=Important, 3=Low, 4=Not Needed
+Scales (note that they run in opposite directions):
+- maturity_score: how developed the capability is.
+  1=Advanced, 2=Developing, 3=Emerging, 4=Nascent (least developed)
+- impact_score: how much this matters to the business.
+  4=Critical to the success of the business
+  3=Of neutral importance to the success of the business
+  2=Not critical to the success of the business
+  1=Not needed at this stage of the company
 - confidence: 0 to 1
+
+Criticality is computed as maturity_score x impact_score (range 1-16), so the
+highest-priority findings are undeveloped capabilities the business critically
+needs. Do not compute it yourself; return only the two ratings.
 
 Return only valid JSON with this exact shape:
 {

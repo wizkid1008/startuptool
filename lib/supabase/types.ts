@@ -57,7 +57,7 @@ export type Database = {
           subdimension_key: string;
           maturity_score: number;
           impact_score: number;
-          opportunity_score: number;
+          criticality_score: number;
           confidence: number | null;
           source: string;
           rationale: string | null;
@@ -71,7 +71,7 @@ export type Database = {
           subdimension_key: string;
           maturity_score: number;
           impact_score: number;
-          opportunity_score: number;
+          criticality_score: number;
         };
         Update: Partial<Database["public"]["Tables"]["assessment_scores"]["Row"]>;
         Relationships: [];

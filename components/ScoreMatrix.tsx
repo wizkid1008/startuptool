@@ -5,17 +5,17 @@ import {
   impactTone,
   maturityLabel,
   maturityTone,
-  opportunityTone,
+  criticalityTone,
   pillClass
 } from "@/lib/smeat/presentation";
-import { computeOpportunityScore } from "@/lib/smeat/scoring";
+import { computeCriticalityScore } from "@/lib/smeat/scoring";
 
 type ScoreRow = {
   dimension_key: string;
   subdimension_key: string;
   maturity_score: number;
   impact_score: number;
-  opportunity_score?: number;
+  criticality_score?: number;
   confidence?: number | null;
   rationale?: string | null;
   source?: string;
@@ -63,9 +63,9 @@ export function ScoreMatrix({ scores }: { scores: ScoreRow[] }) {
                     );
                   }
 
-                  const opportunity = Number(
-                    score.opportunity_score ??
-                      computeOpportunityScore(score.maturity_score, score.impact_score)
+                  const criticality = Number(
+                    score.criticality_score ??
+                      computeCriticalityScore(score.maturity_score, score.impact_score)
                   );
 
                   return (
@@ -82,8 +82,8 @@ export function ScoreMatrix({ scores }: { scores: ScoreRow[] }) {
                         </span>
                       </td>
                       <td>
-                        <span className={pillClass(opportunityTone(opportunity))}>
-                          {opportunity.toFixed(0)}
+                        <span className={pillClass(criticalityTone(criticality))}>
+                          {criticality.toFixed(0)}
                         </span>
                       </td>
                       <td className="tnum muted">

@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     subdimension_key: score.subdimension_key,
     maturity_score: score.maturity_score,
     impact_score: score.impact_score,
-    opportunity_score: Number(score.opportunity_score),
+    criticality_score: Number(score.criticality_score),
     confidence: score.confidence,
     source: score.source,
     rationale: score.rationale
