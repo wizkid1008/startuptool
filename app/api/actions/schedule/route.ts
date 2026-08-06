@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
+import { PLANNED_ONLY } from "@/lib/smeat/actions";
 import { proposeSchedule, today } from "@/lib/smeat/schedule";
 import { createSessionClient } from "@/lib/supabase/server";
 
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
     .from("assessment_actions")
     .select("id,owner,status,dimension_key,subdimension_key,source,accepted_at")
     .eq("assessment_id", assessmentId)
-    .or("source.neq.ai,accepted_at.not.is.null")
+    .or(PLANNED_ONLY)
     .in("status", ["open", "in_progress"]);
 
   if (actionsError) {
