@@ -163,6 +163,11 @@ export type Database = {
           owner: string | null;
           due_date: string | null;
           status: string;
+          source: string;
+          /** Why the agent proposed it — the rubric gap it closes. */
+          rationale: string | null;
+          /** Null until a person accepts the proposal. */
+          accepted_at: string | null;
           created_at: string;
           updated_at: string;
         };

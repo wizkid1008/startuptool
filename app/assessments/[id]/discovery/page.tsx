@@ -5,6 +5,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { AnswerPicker } from "@/components/AnswerPicker";
 import { PageHead } from "@/components/PageHead";
 import { Stepper } from "@/components/Stepper";
+import { PLANNED_ONLY } from "@/lib/smeat/actions";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { discoveryQuestionsFor, ALL_QUESTIONS } from "@/lib/smeat/questions";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
@@ -61,6 +62,7 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
         .from("assessment_actions")
         .select("id", { count: "exact", head: true })
         .eq("assessment_id", id)
+        .or(PLANNED_ONLY)
     ]);
 
   const byQuestion = new Map((answers ?? []).map((answer) => [answer.question_id, answer]));

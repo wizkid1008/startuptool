@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { z } from "zod";
 import { failurePage, formatIssues } from "@/lib/http";
+import { PLANNED_ONLY } from "@/lib/smeat/actions";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { createSessionClient } from "@/lib/supabase/server";
 
@@ -46,7 +47,11 @@ export async function POST(request: Request) {
     supabase.from("assessments").select("*").eq("id", assessmentId).single(),
     supabase.from("assessment_scores").select("*").eq("assessment_id", assessmentId),
     supabase.from("assessment_evidence").select("*").eq("assessment_id", assessmentId),
-    supabase.from("assessment_actions").select("*").eq("assessment_id", assessmentId)
+    supabase
+      .from("assessment_actions")
+      .select("*")
+      .eq("assessment_id", assessmentId)
+      .or(PLANNED_ONLY)
   ]);
 
   if (assessmentError || !assessment) {

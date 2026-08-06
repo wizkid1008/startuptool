@@ -18,7 +18,7 @@ export type RunLimit =
 export async function checkRunLimit(
   supabase: SupabaseClient<Database>,
   assessmentId: string,
-  runType: "scoring" | "research"
+  runType: "scoring" | "research" | "analysis"
 ): Promise<RunLimit> {
   const since = new Date(Date.now() - RUN_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
 

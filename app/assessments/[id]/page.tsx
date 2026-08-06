@@ -6,6 +6,7 @@ import { PageHead } from "@/components/PageHead";
 import { MovementSince } from "@/components/MovementSince";
 import { Stepper } from "@/components/Stepper";
 import { SegmentExplorer } from "@/components/SegmentExplorer";
+import { PLANNED_ONLY } from "@/lib/smeat/actions";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
 import { computeStages } from "@/lib/smeat/stages";
 import {
@@ -49,6 +50,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         .from("assessment_actions")
         .select("id,assessment_score_id,dimension_key,subdimension_key,title,owner,due_date,status")
         .eq("assessment_id", id)
+        .or(PLANNED_ONLY)
         .order("created_at", { ascending: true }),
 
       supabase

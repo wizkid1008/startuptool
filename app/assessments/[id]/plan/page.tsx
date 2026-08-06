@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ActionForm } from "@/components/ActionForm";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
 import { PriorityBoard } from "@/components/PriorityBoard";
 import { Stepper } from "@/components/Stepper";
+import { ACTION_CRITICALITY_FLOOR } from "@/lib/smeat/actions";
 import { findSubdimension, SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { formatDate } from "@/lib/smeat/presentation";
+import { isStaleRun } from "@/lib/smeat/run-scoring";
 import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
 
@@ -30,20 +34,31 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const supabase = await createSessionClient();
 
-  const [{ data: assessment }, { data: scores }, { data: actions }, { data: answers }] =
-    await Promise.all([
-      supabase.from("assessments").select("*").eq("id", id).single(),
-      supabase.from("assessment_scores").select("*").eq("assessment_id", id),
-      supabase
-        .from("assessment_actions")
-        .select("*")
-        .eq("assessment_id", id)
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("assessment_answers")
-        .select("status")
-        .eq("assessment_id", id)
-    ]);
+  const [
+    { data: assessment },
+    { data: scores },
+    { data: actions },
+    { data: answers },
+    { data: proposalRun }
+  ] = await Promise.all([
+    supabase.from("assessments").select("*").eq("id", id).single(),
+    supabase.from("assessment_scores").select("*").eq("assessment_id", id),
+    // Unfiltered: this is the one page that shows proposals as well as the plan.
+    supabase
+      .from("assessment_actions")
+      .select("*")
+      .eq("assessment_id", id)
+      .order("created_at", { ascending: true }),
+    supabase.from("assessment_answers").select("status").eq("assessment_id", id),
+    supabase
+      .from("agent_runs")
+      .select("status,error,created_at")
+      .eq("assessment_id", id)
+      .eq("run_type", "analysis")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+  ]);
 
   if (!assessment) {
     notFound();
@@ -61,7 +76,20 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     .eq("company_id", assessment.company_id);
 
   const rows = scores ?? [];
-  const list = actions ?? [];
+  const all = actions ?? [];
+
+  // An unaccepted proposal is not a plan. Kept out of the working list until
+  // someone has looked at it.
+  const isProposal = (action: (typeof all)[number]) =>
+    action.source === "ai" && !action.accepted_at;
+
+  const proposals = all.filter(isProposal);
+  const list = all.filter((action) => !isProposal(action));
+
+  // A run whose process died leaves "running" behind forever. The dispatch
+  // route already ignores those, so the button must reappear too.
+  const proposalRunning =
+    proposalRun?.status === "running" && !isStaleRun(proposalRun.created_at);
 
   const stages = computeStages({
     assessmentId: assessment.id,
@@ -115,13 +143,107 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         <PriorityBoard scores={rows} />
       </section>
 
+      {rows.length > 0 ? (
+        <section className="section">
+          <div className="card-head">
+            <h2>Proposed</h2>
+            <span className="row" style={{ gap: 10 }}>
+              <span className="microlabel">
+                {proposals.length === 0
+                  ? "Nothing pending"
+                  : `${proposals.length} suggestion${proposals.length === 1 ? "" : "s"} · not yet accepted`}
+              </span>
+              {proposalRunning ? (
+                <span className="pill info">
+                  Running… <AutoRefresh startedAt={proposalRun?.created_at} />
+                </span>
+              ) : (
+                <ActionForm
+                  action="/api/agent/actions"
+                  label={proposals.length > 0 ? "Propose again" : "Propose actions"}
+                  pendingLabel="Starting…"
+                  buttonClassName="secondary small"
+                >
+                  <input type="hidden" name="assessment_id" value={assessment.id} />
+                </ActionForm>
+              )}
+            </span>
+          </div>
+
+          <p className="hint" style={{ marginBottom: 12 }}>
+            The agent reads each subdimension at criticality {ACTION_CRITICALITY_FLOOR} or above,
+            takes the rubric level it sits at now and the one above it, and proposes the work that
+            closes the distance. Accept the ones worth doing; the rest can go.
+          </p>
+
+          {proposalRun?.status === "failed" ? (
+            <div className="notice bad" style={{ marginBottom: 16 }}>
+              <strong>The last proposal run failed.</strong>
+              {proposalRun.error ? <span className="small">{proposalRun.error}</span> : null}
+            </div>
+          ) : null}
+
+          {proposals.length === 0 && !proposalRunning ? (
+            <div className="empty">
+              <strong>No proposals pending.</strong>
+              <span>
+                Accepted ones are in Actions below. Proposing again replaces anything still
+                waiting here, and leaves accepted and hand-written actions alone.
+              </span>
+            </div>
+          ) : null}
+
+          <div className="stack tight">
+            {proposals.map((action) => {
+              const subdimension =
+                action.dimension_key && action.subdimension_key
+                  ? findSubdimension(action.dimension_key, action.subdimension_key)
+                  : null;
+
+              return (
+                <article className="card" key={action.id}>
+                  <div className="between">
+                    <div style={{ minWidth: 0 }}>
+                      <strong>{action.title}</strong>
+                      <div className="hint">
+                        {subdimension?.label ?? action.subdimension_key}
+                        {action.detail ? ` · ${action.detail}` : ""}
+                      </div>
+                    </div>
+                    <span className="row" style={{ gap: 8 }}>
+                      <form method="post" action="/api/actions">
+                        <input type="hidden" name="intent" value="accept" />
+                        <input type="hidden" name="action_id" value={action.id} />
+                        <button className="small" type="submit">
+                          Accept
+                        </button>
+                      </form>
+                      <form method="post" action="/api/actions">
+                        <input type="hidden" name="intent" value="delete" />
+                        <input type="hidden" name="action_id" value={action.id} />
+                        <button className="quiet small" type="submit">
+                          Discard
+                        </button>
+                      </form>
+                    </span>
+                  </div>
+                  {action.rationale ? (
+                    <p className="small muted" style={{ marginTop: 8 }}>
+                      {action.rationale}
+                    </p>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
       <section className="section">
         <div className="card-head">
           <h2>Actions</h2>
           <span className="microlabel">
-            {list.length === 0
-              ? "None yet"
-              : `${open} open of ${list.length}`}
+            {list.length === 0 ? "None yet" : `${open} open of ${list.length}`}
           </span>
         </div>
 
@@ -201,6 +323,11 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                             <tr key={action.id}>
                               <td>
                                 <strong>{action.title}</strong>
+                                {action.source === "ai" ? (
+                                  <span className="pill ghost" style={{ marginLeft: 8 }}>
+                                    Proposed
+                                  </span>
+                                ) : null}
                                 {action.detail ? (
                                   <div className="hint">{action.detail}</div>
                                 ) : null}

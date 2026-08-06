@@ -26,7 +26,18 @@ const deleteSchema = z.object({
   action_id: z.string().uuid()
 });
 
-const schema = z.discriminatedUnion("intent", [createSchema, updateSchema, deleteSchema]);
+/** Turns an agent proposal into part of the plan. */
+const acceptSchema = z.object({
+  intent: z.literal("accept"),
+  action_id: z.string().uuid()
+});
+
+const schema = z.discriminatedUnion("intent", [
+  createSchema,
+  updateSchema,
+  deleteSchema,
+  acceptSchema
+]);
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -87,6 +98,7 @@ export async function POST(request: Request) {
   }
 
   const table = supabase.from("assessment_actions");
+
   const { data, error } =
     parsed.data.intent === "update"
       ? await table
@@ -94,11 +106,19 @@ export async function POST(request: Request) {
           .eq("id", parsed.data.action_id)
           .select("assessment_id")
           .single()
-      : await table
-          .delete()
-          .eq("id", parsed.data.action_id)
-          .select("assessment_id")
-          .single();
+      : parsed.data.intent === "accept"
+        ? await table
+            // Stamping accepted_at moves it into the working list and stops a
+            // later proposal run from clearing it.
+            .update({ accepted_at: new Date().toISOString() })
+            .eq("id", parsed.data.action_id)
+            .select("assessment_id")
+            .single()
+        : await table
+            .delete()
+            .eq("id", parsed.data.action_id)
+            .select("assessment_id")
+            .single();
 
   if (error || !data) {
     return failurePage({

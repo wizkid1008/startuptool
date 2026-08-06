@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHead } from "@/components/PageHead";
 import { Stepper } from "@/components/Stepper";
+import { PLANNED_ONLY } from "@/lib/smeat/actions";
 import {
   assessmentStatusTone,
   formatRelative,
@@ -65,6 +66,7 @@ export default async function CompanyPage({
               .from("assessment_actions")
               .select("id", { count: "exact", head: true })
               .eq("assessment_id", fromAssessment!)
+              .or(PLANNED_ONLY)
           ]);
 
         return computeStages({
