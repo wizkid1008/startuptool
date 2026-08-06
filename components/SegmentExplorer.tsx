@@ -210,7 +210,9 @@ export function SegmentExplorer({
             ];
 
             return (
-              <details key={subdimension.key}>
+              // Same exclusive grouping as discovery: one subdimension open at
+              // a time, rather than a page of expanded rubric cards.
+              <details key={subdimension.key} name="review-subdimension">
                 <summary>
                   <span className="row" style={{ gap: 6, minWidth: 0 }}>
                     <strong>{subdimension.label}</strong>

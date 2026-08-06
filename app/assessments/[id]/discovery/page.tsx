@@ -223,7 +223,10 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
               ).length;
 
               return (
-                <details key={subdimension.key}>
+                // Shared name makes these mutually exclusive — opening one
+                // closes whichever was open, so only a single subdimension of
+                // questions is on screen at a time.
+                <details key={subdimension.key} name="discovery-subdimension">
                   <summary>
                     <span>
                       <strong>{subdimension.label}</strong>
