@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
+import {
+  checkRunLimit,
+  formatWait,
+  RUN_WINDOW_HOURS
+} from "@/lib/smeat/rate-limit";
 import { DISCOVERY_MODEL, runDiscovery } from "@/lib/smeat/run-discovery";
 import { isStaleRun } from "@/lib/smeat/run-scoring";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -59,6 +64,17 @@ export async function POST(request: Request) {
       backHref: back,
       backLabel: "Back to discovery",
       status: 409
+    });
+  }
+
+  const limit = await checkRunLimit(supabase, assessmentId, "research");
+  if (!limit.allowed) {
+    return failurePage({
+      title: "Discovery already run today.",
+      detail: `Discovery runs once per assessment per ${RUN_WINDOW_HOURS} hours — it is seven model calls. The last run started ${limit.lastRunAt.toLocaleString()}; the next is available in ${formatWait(limit.nextAllowedAt)}. Answering questions by hand is unaffected.`,
+      backHref: back,
+      backLabel: "Back to discovery",
+      status: 429
     });
   }
 

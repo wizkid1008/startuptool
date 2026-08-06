@@ -59,14 +59,28 @@ export async function POST(request: Request) {
     .select("assessment_id")
     .single();
 
+  // The Plan page saves estimates in the background; form posts still redirect.
+  const wantsJson = request.headers.get("accept")?.includes("application/json");
+
   if (error || !data) {
+    const message =
+      error?.message ?? "The score was not found, or you do not have access to it.";
+
+    if (wantsJson) {
+      return Response.json({ ok: false, error: message }, { status: error ? 500 : 404 });
+    }
+
     return failurePage({
       title: "That score could not be saved.",
-      detail: error?.message ?? "The score was not found, or you do not have access to it.",
+      detail: message,
       backHref: "/assessments",
       backLabel: "Back to assessments",
       status: error ? 500 : 404
     });
+  }
+
+  if (wantsJson) {
+    return Response.json({ ok: true });
   }
 
   return seeOther(`/assessments/${data.assessment_id}`, request);

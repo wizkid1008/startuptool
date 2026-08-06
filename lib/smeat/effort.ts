@@ -9,7 +9,9 @@ import { MAX_CRITICALITY } from "@/lib/smeat/scoring";
  * worth keeping in mind when reading a row.
  */
 
-export type Scale = Record<1 | 2 | 3 | 4, { label: string; definition: string }>;
+export type Scale = Readonly<
+  Record<1 | 2 | 3 | 4, { readonly label: string; readonly definition: string }>
+>;
 
 export const effortScale: Scale = {
   1: {

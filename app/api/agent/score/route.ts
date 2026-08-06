@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
+import {
+  checkRunLimit,
+  formatWait,
+  RUN_WINDOW_HOURS
+} from "@/lib/smeat/rate-limit";
 import { isStaleRun, runScoring, SCORING_MODEL } from "@/lib/smeat/run-scoring";
 import { createSessionClient } from "@/lib/supabase/server";
 
@@ -65,6 +70,17 @@ export async function POST(request: Request) {
         status: 409
       });
     }
+  }
+
+  const limit = await checkRunLimit(supabase, assessmentId, "scoring");
+  if (!limit.allowed) {
+    return failurePage({
+      title: "Already scored today.",
+      detail: `Scoring runs once per assessment per ${RUN_WINDOW_HOURS} hours. The last run started ${limit.lastRunAt.toLocaleString()}; the next is available in ${formatWait(limit.nextAllowedAt)}. Editing scores by hand is unaffected.`,
+      backHref: back,
+      backLabel: "Back to assessment",
+      status: 429
+    });
   }
 
   const { data: run } = await supabase

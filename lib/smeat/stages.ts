@@ -9,7 +9,7 @@ import { ALL_QUESTIONS } from "@/lib/smeat/questions";
  * from reality.
  */
 
-export type StageKey = "profile" | "discovery" | "score" | "review" | "plan";
+export type StageKey = "profile" | "discovery" | "score" | "plan";
 
 export type StageState = "blocked" | "todo" | "partial" | "done";
 
@@ -59,15 +59,6 @@ export function computeStages(input: StageInput): Stage[] {
         ? "done"
         : "partial";
 
-  const reviewState: StageState =
-    input.scoreCount === 0
-      ? "blocked"
-      : input.status === "finalized"
-        ? "done"
-        : input.editedCount > 0
-          ? "partial"
-          : "todo";
-
   const planState: StageState =
     input.scoreCount === 0
       ? "blocked"
@@ -81,7 +72,9 @@ export function computeStages(input: StageInput): Stage[] {
     {
       key: "profile",
       label: "Profile",
-      href: `/companies/${input.companyId}`,
+      // Carries the assessment so the company page can keep showing the
+      // stepper — otherwise stepping back drops you out of the flow entirely.
+      href: `/companies/${input.companyId}?assessment=${input.assessmentId}`,
       state: profileDone ? "done" : "todo",
       detail: profileDone
         ? `${input.documentCount} document${input.documentCount === 1 ? "" : "s"}`
@@ -105,20 +98,6 @@ export function computeStages(input: StageInput): Stage[] {
         input.scoreCount === 0
           ? "Not scored"
           : `${input.scoreCount} of ${TOTAL_SUBDIMENSIONS} subdimensions`
-    },
-    {
-      key: "review",
-      label: "Review",
-      href: assessment,
-      state: reviewState,
-      detail:
-        input.scoreCount === 0
-          ? "Assess first"
-          : input.status === "finalized"
-            ? "Finalised"
-            : input.editedCount > 0
-              ? `${input.editedCount} edited`
-              : "Nothing reviewed yet"
     },
     {
       key: "plan",

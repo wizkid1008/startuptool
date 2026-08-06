@@ -1,18 +1,27 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHead } from "@/components/PageHead";
+import { Stepper } from "@/components/Stepper";
 import {
   assessmentStatusTone,
   formatRelative,
   pillClass
 } from "@/lib/smeat/presentation";
+import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
 import { displayUrl, safeExternalUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CompanyPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ assessment?: string }>;
+}) {
   const { id } = await params;
+  const { assessment: fromAssessment } = await searchParams;
   const supabase = await createSessionClient();
 
   const [{ data: company }, { data: assessments }, { data: documents }] = await Promise.all([
@@ -36,19 +45,65 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   const website = safeExternalUrl(company.website);
   const meta = [company.industry, company.stage, company.geography].filter(Boolean).join(" · ");
 
+  // Arriving from an assessment's Profile step: keep the flow visible rather
+  // than dropping the user out of it with no way back.
+  const inFlow = (assessments ?? []).some((row) => row.id === fromAssessment);
+
+  const stages = inFlow
+    ? await (async () => {
+        const [{ data: answers }, { count: scoreCount }, { count: actionCount }] =
+          await Promise.all([
+            supabase
+              .from("assessment_answers")
+              .select("status")
+              .eq("assessment_id", fromAssessment!),
+            supabase
+              .from("assessment_scores")
+              .select("id", { count: "exact", head: true })
+              .eq("assessment_id", fromAssessment!),
+            supabase
+              .from("assessment_actions")
+              .select("id", { count: "exact", head: true })
+              .eq("assessment_id", fromAssessment!)
+          ]);
+
+        return computeStages({
+          assessmentId: fromAssessment!,
+          companyId: company.id,
+          hasDescription: Boolean(company.description),
+          documentCount: (documents ?? []).length,
+          answeredCount: (answers ?? []).filter((a) => a.status === "answered").length,
+          needsInputCount: (answers ?? []).filter((a) => a.status === "needs_input").length,
+          scoreCount: scoreCount ?? 0,
+          editedCount: 0,
+          estimatedCount: 0,
+          actionCount: actionCount ?? 0,
+          status: ""
+        });
+      })()
+    : null;
+
   return (
     <>
       <PageHead
-        eyebrow="SMEAT / Companies"
+        eyebrow={inFlow ? "SMEAT / Companies / Profile" : "SMEAT / Companies"}
         title={company.name}
         lede={meta || "Company profile"}
         actions={
-          <form method="post" action="/api/assessments">
-            <input type="hidden" name="company_id" value={company.id} />
-            <button type="submit">Start assessment</button>
-          </form>
+          inFlow ? (
+            <Link className="btn" href={`/assessments/${fromAssessment}/discovery`}>
+              Back to discovery
+            </Link>
+          ) : (
+            <form method="post" action="/api/assessments">
+              <input type="hidden" name="company_id" value={company.id} />
+              <button type="submit">Start assessment</button>
+            </form>
+          )
         }
       />
+
+      {stages ? <Stepper stages={stages} current="profile" /> : null}
 
       <div className="grid split">
         <article className="card">

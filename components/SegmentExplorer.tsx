@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  costScale,
-  effortScale,
-  estimateConfidenceScale,
-  priorityBand,
-  priorityTone,
-  timeScale
-} from "@/lib/smeat/effort";
+import { priorityBand, priorityTone } from "@/lib/smeat/effort";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import {
   criticalityBand,
@@ -299,36 +292,22 @@ export function SegmentExplorer({
                       ))}
                     </div>
 
-                    <div className="microlabel" style={{ marginTop: 14 }}>
-                      Estimate to move up one level
-                    </div>
-                    <div className="estimates">
-                      {(
-                        [
-                          ["effort_score", "Effort", effortScale, score.effort_score],
-                          ["time_score", "Time", timeScale, score.time_score],
-                          ["cost_score", "Cost", costScale, score.cost_score],
-                          [
-                            "estimate_confidence",
-                            "Confidence",
-                            estimateConfidenceScale,
-                            score.estimate_confidence
-                          ]
-                        ] as const
-                      ).map(([name, label, scale, value]) => (
-                        <div className="field" key={name}>
-                          <label htmlFor={`${name}-${score.id}`}>{label}</label>
-                          <select id={`${name}-${score.id}`} name={name} defaultValue={value ?? ""}>
-                            <option value="">Not estimated</option>
-                            {[1, 2, 3, 4].map((level) => (
-                              <option key={level} value={level}>
-                                {level} · {scale[level as 1 | 2 | 3 | 4].label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ))}
-                    </div>
+                    {/* Effort, time, cost and confidence live on the Plan
+                        page. This view is for judging what is true; those are
+                        for deciding what to do about it. They are carried as
+                        hidden fields so saving here does not clear them. */}
+                    <input
+                      type="hidden"
+                      name="effort_score"
+                      value={score.effort_score ?? ""}
+                    />
+                    <input type="hidden" name="time_score" value={score.time_score ?? ""} />
+                    <input type="hidden" name="cost_score" value={score.cost_score ?? ""} />
+                    <input
+                      type="hidden"
+                      name="estimate_confidence"
+                      value={score.estimate_confidence ?? ""}
+                    />
 
                     {score.rationale ? (
                       <div className="rationale">
