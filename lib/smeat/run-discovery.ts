@@ -142,7 +142,15 @@ Return only valid JSON:
 export async function runDiscovery(assessmentId: string, runId: string | null) {
   const supabase = createServiceClient();
 
-  const progress = async (payload: Record<string, unknown>) => {
+  // Concrete shape rather than Record<string, unknown> — the column is Json,
+  // which an index signature of unknown does not satisfy.
+  const progress = async (payload: {
+    stage: string;
+    completed_dimensions: number;
+    total_dimensions: number;
+    answered: number;
+    needs_input: number;
+  }) => {
     if (!runId) return;
     await supabase.from("agent_runs").update({ output_payload: payload }).eq("id", runId);
   };
