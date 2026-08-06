@@ -51,7 +51,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const averageCriticality =
     rows.length > 0
       ? rows.reduce((total, score) => total + Number(score.criticality_score), 0) / rows.length
-      : 0;
+      : null;
   const readiness = readinessScore(averageCriticality);
   const tone = readinessTone(readiness);
 
@@ -113,21 +113,37 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         <div className="stat">
           <div className="microlabel">Readiness</div>
           <div className="num">
-            {readiness}
-            <span className="num-unit"> /100</span>
+            {readiness === null ? (
+              <span className="muted">—</span>
+            ) : (
+              <>
+                {readiness}
+                <span className="num-unit"> /100</span>
+              </>
+            )}
           </div>
           <div className={`meter ${tone}`}>
-            <span style={{ width: `${Math.max(0, Math.min(100, readiness))}%` }} />
+            <span style={{ width: `${readiness ?? 0}%` }} />
           </div>
         </div>
 
         <div className="stat">
           <div className="microlabel">Average criticality</div>
-          <div className="num">{averageCriticality.toFixed(1)}</div>
+          <div className="num">
+            {averageCriticality === null ? (
+              <span className="muted">—</span>
+            ) : (
+              averageCriticality.toFixed(1)
+            )}
+          </div>
           <div>
-            <span className={pillClass(criticalityTone(averageCriticality))}>
-              {criticalityBand(averageCriticality)}
-            </span>
+            {averageCriticality === null ? (
+              <span className="pill ghost">Not scored</span>
+            ) : (
+              <span className={pillClass(criticalityTone(averageCriticality))}>
+                {criticalityBand(averageCriticality)}
+              </span>
+            )}
           </div>
         </div>
 

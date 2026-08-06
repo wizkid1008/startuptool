@@ -400,6 +400,11 @@ h3 {
   background: var(--bad);
 }
 
+/* Nothing scored — an empty track, not a full green bar. */
+.meter.empty > span {
+  background: transparent;
+}
+
 /* Pill ===================================================================== */
 
 .pill {

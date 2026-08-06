@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { MATURITY_RUBRIC, rubricFor, rubricLevel } from "@/lib/smeat/rubric";
+import { readinessScore, readinessTone } from "@/lib/smeat/presentation";
 import {
   computeCriticalityScore,
   impactScale,
@@ -145,5 +146,23 @@ describe("rubric coverage", () => {
   it("resolves a known definition", () => {
     const level = rubricLevel("customer", "products_markets_channels", 1);
     expect(level?.bullets[0]).toContain("expanding globally");
+  });
+});
+
+describe("readiness with no data", () => {
+  it("is null rather than a perfect score", () => {
+    // Criticality bottoms out at 1, so feeding 0 for "nothing scored" produced
+    // 106% clamped to 100 — an empty portfolio displayed as flawless.
+    expect(readinessScore(null)).toBeNull();
+    expect(readinessTone(null)).toBe("empty");
+  });
+
+  it("maps the ends of the range", () => {
+    expect(readinessScore(MIN_CRITICALITY)).toBe(100);
+    expect(readinessScore(MAX_CRITICALITY)).toBe(0);
+  });
+
+  it("puts a mid-range average near the middle", () => {
+    expect(readinessScore(8.5)).toBe(50);
   });
 });

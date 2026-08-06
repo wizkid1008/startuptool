@@ -51,14 +51,19 @@ export function criticalityPercent(score: number) {
  * 1 rather than 0, so the span is measured from MIN_CRITICALITY — otherwise a
  * perfect assessment would score 94 instead of 100.
  */
-export function readinessScore(averageCriticality: number | null) {
-  if (averageCriticality === null) return 0;
+export function readinessScore(averageCriticality: number | null): number | null {
+  // Null means "nothing scored", which is not the same as a perfect result.
+  // Passing 0 here previously produced 106% — clamped to 100 — so an empty
+  // portfolio displayed as flawless.
+  if (averageCriticality === null) return null;
+
   const span = MAX_CRITICALITY - MIN_CRITICALITY;
   const pct = 100 - ((averageCriticality - MIN_CRITICALITY) / span) * 100;
   return Math.round(Math.max(0, Math.min(100, pct)));
 }
 
-export function readinessTone(readiness: number) {
+export function readinessTone(readiness: number | null) {
+  if (readiness === null) return "empty";
   return readiness >= 70 ? "" : readiness >= 45 ? "warn" : "bad";
 }
 
