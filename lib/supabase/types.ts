@@ -9,6 +9,52 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      organizations: {
+        Row: {
+          id: string;
+          name: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["organizations"]["Row"]> & {
+          name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["organizations"]["Row"]>;
+        Relationships: [];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          organization_id: string | null;
+          full_name: string | null;
+          role: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["profiles"]["Row"]> & { id: string };
+        Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
+        Relationships: [];
+      };
+      organization_invites: {
+        Row: {
+          id: string;
+          organization_id: string;
+          email: string;
+          role: string;
+          invited_by: string | null;
+          created_at: string;
+          expires_at: string;
+          /** Set by handle_new_user when the invited address registers. */
+          accepted_at: string | null;
+          accepted_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["organization_invites"]["Row"]> & {
+          organization_id: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["organization_invites"]["Row"]>;
+        Relationships: [];
+      };
       companies: {
         Row: {
           id: string;

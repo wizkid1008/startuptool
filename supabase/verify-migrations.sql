@@ -61,5 +61,10 @@ select
                and column_name in ('start_date','end_date')) = 2
        then 'ok' else 'MISSING' end                                as m0009_action_schedule,
 
+  case when exists (select 1 from tbls where table_name='organization_invites')
+         and exists (select 1 from cols
+                     where table_name='organization_invites' and column_name='accepted_at')
+       then 'ok' else 'MISSING' end                                as m0010_invite_only,
+
   (select count(*) from pol where schemaname in ('public','storage'))::text
                                                                    as policy_count;
