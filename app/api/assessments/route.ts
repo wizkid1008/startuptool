@@ -36,5 +36,8 @@ export async function POST(request: Request) {
     });
   }
 
-  return seeOther(`/assessments/${data.id}`, request);
+  // Discovery is the first real stage. Landing on the assessment instead
+  // offered "Run agent score" as the primary action with no evidence gathered,
+  // which is exactly the order the stepper says not to work in.
+  return seeOther(`/assessments/${data.id}/discovery`, request);
 }

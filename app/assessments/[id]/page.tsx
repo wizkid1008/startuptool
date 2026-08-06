@@ -117,6 +117,10 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const tone = readinessTone(readiness);
 
   const editedCount = rows.filter((row) => row.source === "manual").length;
+  const discoveryCount = (answerStatuses ?? []).length;
+  const discoveryAnswered = (answerStatuses ?? []).filter(
+    (a) => a.status === "answered"
+  ).length;
 
   const stages = computeStages({
     assessmentId: assessment.id,
@@ -143,6 +147,15 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           <>
             {isRunning ? (
               <span className="pill info">Scoring in progress</span>
+            ) : discoveryCount === 0 ? (
+              // Nothing gathered yet, so scoring would run on the company
+              // profile alone. Send them to the stage that comes first.
+              <Link
+                className="btn"
+                href={`/assessments/${assessment.id}/discovery`}
+              >
+                Start with discovery
+              </Link>
             ) : (
               <ActionForm
                 action="/api/agent/score"
@@ -167,6 +180,35 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       </div>
 
       <Stepper stages={stages} current="score" />
+
+      {discoveryCount === 0 && !hasScores ? (
+        <div className="notice" style={{ marginBottom: 20 }}>
+          <strong>Nothing gathered yet.</strong>
+          <span className="small">
+            Discovery comes first. The agent reads the company profile and any uploaded
+            documents, answers what the evidence supports, and tells you what it still needs.
+            Scoring without it works, but from a company name and a stage dropdown.
+          </span>
+          <Link
+            className="btn small"
+            href={`/assessments/${assessment.id}/discovery`}
+            style={{ marginTop: 8, alignSelf: "start" }}
+          >
+            Go to discovery
+          </Link>
+        </div>
+      ) : null}
+
+      {discoveryCount > 0 && discoveryAnswered < 10 && !hasScores ? (
+        <div className="notice warn" style={{ marginBottom: 20 }}>
+          <strong>Thin evidence so far.</strong>
+          <span className="small">
+            Only {discoveryAnswered} of {discoveryCount} discovery questions are answered.
+            Scoring will run, but most ratings will carry low confidence. Filling gaps first
+            gives the agent something to work from.
+          </span>
+        </div>
+      ) : null}
 
       {isRunning ? (
         <div className="notice" style={{ marginBottom: 20 }}>
