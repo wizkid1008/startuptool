@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { MATURITY_RUBRIC, rubricFor, rubricLevel } from "@/lib/smeat/rubric";
 import { readinessScore, readinessTone } from "@/lib/smeat/presentation";
+import { ALL_QUESTIONS, DISCOVERY_QUESTIONS } from "@/lib/smeat/questions";
 import {
   computeCriticalityScore,
   impactScale,
@@ -164,5 +165,31 @@ describe("readiness with no data", () => {
 
   it("puts a mid-range average near the middle", () => {
     expect(readinessScore(8.5)).toBe(50);
+  });
+});
+
+describe("discovery questions", () => {
+  it("covers all 30 subdimensions", () => {
+    expect(DISCOVERY_QUESTIONS).toHaveLength(30);
+
+    const covered = new Set(
+      DISCOVERY_QUESTIONS.map((s) => `${s.dimension_key}:${s.subdimension_key}`)
+    );
+    for (const dimension of SMEAT_DIMENSIONS) {
+      for (const sub of dimension.subdimensions) {
+        expect(covered.has(`${dimension.key}:${sub.key}`)).toBe(true);
+      }
+    }
+  });
+
+  it("gives every question all four level cues", () => {
+    for (const question of ALL_QUESTIONS) {
+      expect(Object.keys(question.listenFor).sort()).toEqual(["1", "2", "3", "4"]);
+    }
+  });
+
+  it("uses unique ids, since answers key off them", () => {
+    const ids = ALL_QUESTIONS.map((q) => q.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });

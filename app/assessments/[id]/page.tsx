@@ -125,9 +125,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         <span className={pillClass(assessmentStatusTone(assessment.status))}>
           {assessment.status}
         </span>
-        {assessment.model_name ? (
-          <span className="pill ghost">{assessment.model_name}</span>
-        ) : null}
         <span className="hint">Updated {formatRelative(assessment.updated_at)}</span>
         {company ? (
           <Link className="btn quiet small" href={`/companies/${company.id}`}>
