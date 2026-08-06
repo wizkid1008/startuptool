@@ -3,13 +3,18 @@ import { ALL_QUESTIONS } from "@/lib/smeat/questions";
 /**
  * The five stages of an assessment, derived from data rather than stored.
  *
- * The original static tool had an explicit four-step path with a stepper, and
- * the rebuild lost it — every capability exists but nothing tells a user where
+ * The original static tool had an explicit step path with a stepper, and the
+ * rebuild lost it — every capability exists but nothing tells a user where
  * they are or what to do next. Deriving state avoids a status field that drifts
  * from reality.
+ *
+ * Each stage answers one question: who is this company, what do we know, where
+ * are they, what matters most and what will it cost, and what are we doing
+ * about it. Prioritize was a section of Plan until it became clear that the
+ * step nobody sees is the step nobody does.
  */
 
-export type StageKey = "profile" | "discovery" | "score" | "plan";
+export type StageKey = "profile" | "discovery" | "score" | "prioritize" | "plan";
 
 export type StageState = "blocked" | "todo" | "partial" | "done";
 
@@ -59,14 +64,27 @@ export function computeStages(input: StageInput): Stage[] {
         ? "done"
         : "partial";
 
+  // Prioritize is where effort, time and cost get set. Nothing can be ranked
+  // until they are, which is why it is a step of its own rather than a panel
+  // on Plan that people scrolled past.
+  const prioritizeState: StageState =
+    input.scoreCount === 0
+      ? "blocked"
+      : input.estimatedCount === 0
+        ? "todo"
+        : input.estimatedCount >= input.scoreCount
+          ? "done"
+          : "partial";
+
+  // Plan is about actions only now. It used to be marked complete by work done
+  // in Prioritize, which made the stepper claim a plan existed when nothing
+  // had been decided.
   const planState: StageState =
     input.scoreCount === 0
       ? "blocked"
       : input.actionCount > 0
         ? "done"
-        : input.estimatedCount > 0
-          ? "partial"
-          : "todo";
+        : "todo";
 
   return [
     {
@@ -100,6 +118,18 @@ export function computeStages(input: StageInput): Stage[] {
           : `${input.scoreCount} of ${TOTAL_SUBDIMENSIONS} subdimensions`
     },
     {
+      key: "prioritize",
+      label: "Prioritize",
+      href: `${assessment}/prioritize`,
+      state: prioritizeState,
+      detail:
+        input.scoreCount === 0
+          ? "Assess first"
+          : input.estimatedCount === 0
+            ? "No effort estimates"
+            : `${input.estimatedCount} of ${input.scoreCount} estimated`
+    },
+    {
       key: "plan",
       label: "Plan",
       href: `${assessment}/plan`,
@@ -109,9 +139,7 @@ export function computeStages(input: StageInput): Stage[] {
           ? "Assess first"
           : input.actionCount > 0
             ? `${input.actionCount} action${input.actionCount === 1 ? "" : "s"}`
-            : input.estimatedCount > 0
-              ? "Estimated, no actions yet"
-              : "No effort estimates"
+            : "No actions yet"
     }
   ];
 }

@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
-import { PriorityBoard } from "@/components/PriorityBoard";
 import { ProposalList } from "@/components/ProposalList";
 import { Stepper } from "@/components/Stepper";
 import { ACTION_CRITICALITY_FLOOR } from "@/lib/smeat/actions";
@@ -92,6 +91,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   const proposalRunning =
     proposalRun?.status === "running" && !isStaleRun(proposalRun.created_at);
 
+  const estimated = rows.filter((row) => row.effort_score !== null).length;
+
   const stages = computeStages({
     assessmentId: assessment.id,
     companyId: assessment.company_id,
@@ -101,7 +102,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     needsInputCount: (answers ?? []).filter((a) => a.status === "needs_input").length,
     scoreCount: rows.length,
     editedCount: rows.filter((row) => row.source === "manual").length,
-    estimatedCount: rows.filter((row) => row.effort_score !== null).length,
+    estimatedCount: estimated,
     actionCount: list.length,
     status: assessment.status
   });
@@ -118,11 +119,11 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
       <PageHead
         eyebrow={company ? `SMEAT / ${company.name} / Plan` : "SMEAT / Plan"}
         title="Plan"
-        lede="What to do first, and who is doing it. Ranked by criticality against the effort to fix."
+        lede="The work itself: what is being done, who owns it, and when."
         actions={
           <>
-            <Link className="btn secondary" href={`/assessments/${assessment.id}`}>
-              Back to assessment
+            <Link className="btn secondary" href={`/assessments/${assessment.id}/prioritize`}>
+              Back to prioritize
             </Link>
             <form method="post" action="/api/excel/export">
               <input type="hidden" name="assessment_id" value={assessment.id} />
@@ -136,13 +137,16 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
       <Stepper stages={stages} current="plan" />
 
-      <section className="section">
-        <div className="card-head">
-          <h2>Priority</h2>
-          <span className="microlabel">Criticality × (5 − effort)</span>
+      {rows.length > 0 && estimated === 0 ? (
+        <div className="notice" style={{ marginBottom: 16 }}>
+          <strong>Nothing has been prioritised yet.</strong>
+          <span className="small">
+            Proposals and actions will still work, but without effort estimates there is no
+            order to schedule them in.{" "}
+            <Link href={`/assessments/${assessment.id}/prioritize`}>Prioritize</Link> first.
+          </span>
         </div>
-        <PriorityBoard scores={rows} />
-      </section>
+      ) : null}
 
       {rows.length > 0 ? (
         <section className="section">

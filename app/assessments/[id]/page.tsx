@@ -168,8 +168,8 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                 <input type="hidden" name="assessment_id" value={assessment.id} />
               </ActionForm>
             )}
-            <Link className="btn secondary" href={`/assessments/${assessment.id}/plan`}>
-              Plan
+            <Link className="btn secondary" href={`/assessments/${assessment.id}/prioritize`}>
+              Prioritize
             </Link>
           </>
         }

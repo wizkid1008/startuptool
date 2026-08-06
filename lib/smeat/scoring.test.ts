@@ -9,6 +9,7 @@ import {
 } from "@/lib/smeat/presentation";
 import { ALL_QUESTIONS, DISCOVERY_QUESTIONS } from "@/lib/smeat/questions";
 import { computePriorityScore, quadrantFor } from "@/lib/smeat/effort";
+import { computeStages } from "@/lib/smeat/stages";
 import {
   computeCriticalityScore,
   impactScale,
@@ -258,5 +259,65 @@ describe("criticality shown out of four", () => {
       expect(level).toBeGreaterThanOrEqual(previous);
       previous = level;
     }
+  });
+});
+
+describe("assessment stages", () => {
+  const base = {
+    assessmentId: "a",
+    companyId: "c",
+    hasDescription: true,
+    documentCount: 1,
+    answeredCount: 0,
+    needsInputCount: 0,
+    scoreCount: 0,
+    editedCount: 0,
+    estimatedCount: 0,
+    actionCount: 0,
+    status: "draft"
+  };
+
+  const stageFor = (key: string, input: Partial<typeof base>) =>
+    computeStages({ ...base, ...input }).find((stage) => stage.key === key)!;
+
+  it("runs profile, discovery, assessment, prioritize, plan", () => {
+    expect(computeStages(base).map((stage) => stage.key)).toEqual([
+      "profile",
+      "discovery",
+      "score",
+      "prioritize",
+      "plan"
+    ]);
+  });
+
+  it("blocks prioritize and plan until something is scored", () => {
+    expect(stageFor("prioritize", {}).state).toBe("blocked");
+    expect(stageFor("plan", {}).state).toBe("blocked");
+  });
+
+  // Prioritize used to be a panel on Plan, so estimates marked Plan complete
+  // even though no action had been decided.
+  it("does not let estimates complete the plan stage", () => {
+    const input = { scoreCount: 30, estimatedCount: 30 };
+    expect(stageFor("prioritize", input).state).toBe("done");
+    expect(stageFor("plan", input).state).toBe("todo");
+  });
+
+  it("completes plan on actions alone", () => {
+    const input = { scoreCount: 30, estimatedCount: 0, actionCount: 3 };
+    expect(stageFor("prioritize", input).state).toBe("todo");
+    expect(stageFor("plan", input).state).toBe("done");
+  });
+
+  it("counts a partial estimate pass as partial", () => {
+    expect(stageFor("prioritize", { scoreCount: 30, estimatedCount: 12 }).state).toBe(
+      "partial"
+    );
+  });
+
+  it("sends prioritize and plan to their own routes", () => {
+    const input = { scoreCount: 30 };
+    expect(stageFor("prioritize", input).href).toBe("/assessments/a/prioritize");
+    expect(stageFor("plan", input).href).toBe("/assessments/a/plan");
   });
 });

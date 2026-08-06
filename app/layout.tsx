@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { BuildStamp } from "@/components/BuildStamp";
 import { Masthead } from "@/components/Masthead";
 import { SideNav } from "@/components/SideNav";
 import { getSessionUser } from "@/lib/supabase/server";
@@ -29,7 +30,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <div className="layout">
             <SideNav />
             <main className="content">
-              <div className="wide">{children}</div>
+              <div className="wide">
+                {children}
+                <BuildStamp />
+              </div>
             </main>
           </div>
         ) : (

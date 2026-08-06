@@ -1085,6 +1085,19 @@ details[open] summary {
   justify-content: center;
 }
 
+.buildstamp {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 48px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 /* Proposals ================================================================ */
 
 .proposals {
@@ -1429,9 +1442,19 @@ summary {
 
 .stepper {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* Driven by the stage list rather than a hard-coded count, so adding a
+     stage does not silently wrap one step onto its own row. */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 26px;
+}
+
+@media (max-width: 900px) {
+  .stepper {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .step {
