@@ -117,6 +117,30 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["company_documents"]["Row"]>;
         Relationships: [];
       };
+      assessment_answers: {
+        Row: {
+          id: string;
+          assessment_id: string;
+          dimension_key: string;
+          subdimension_key: string;
+          question_id: string;
+          answer: string | null;
+          status: string;
+          source: string;
+          confidence: number | null;
+          evidence: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["assessment_answers"]["Row"]> & {
+          assessment_id: string;
+          dimension_key: string;
+          subdimension_key: string;
+          question_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["assessment_answers"]["Row"]>;
+        Relationships: [];
+      };
       assessment_actions: {
         Row: {
           id: string;

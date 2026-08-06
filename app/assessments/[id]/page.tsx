@@ -111,6 +111,9 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                 <input type="hidden" name="assessment_id" value={assessment.id} />
               </ActionForm>
             )}
+            <Link className="btn secondary" href={`/assessments/${assessment.id}/discovery`}>
+              Discovery
+            </Link>
             <form method="post" action="/api/excel/export">
               <input type="hidden" name="assessment_id" value={assessment.id} />
               <button className="secondary" type="submit">

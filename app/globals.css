@@ -915,6 +915,40 @@ details[open] summary {
   margin-bottom: 6px;
 }
 
+.qblock {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.qblock:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.qblock form {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+/* The level cues sit under each question so whoever is answering knows what
+   distinguishes a 2 from a 3 without knowing the framework. */
+.cues {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0 4px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--faint);
+}
+
+.cues b {
+  display: inline-block;
+  min-width: 14px;
+  color: var(--muted);
+}
+
 .actionrow {
   display: flex;
   align-items: center;

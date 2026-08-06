@@ -10,7 +10,14 @@ export function buildScoringPrompt(
     employee_count_range?: string | null;
     description?: string | null;
   },
-  documents: Array<{ file_name: string; document_type?: string | null; parsed_text?: string | null }> = []
+  documents: Array<{ file_name: string; document_type?: string | null; parsed_text?: string | null }> = [],
+  answers: Array<{
+    dimension_key: string;
+    subdimension_key: string;
+    question_id: string;
+    answer: string | null;
+    status: string;
+  }> = []
 ) {
   const dimensions = SMEAT_DIMENSIONS.map((dimension) => ({
     dimension_key: dimension.key,
@@ -35,6 +42,36 @@ ${JSON.stringify(
   null,
   2
 )}
+
+Discovery answers:
+${
+  answers.length === 0
+    ? "None gathered. Score from the profile and documents alone, and keep confidence low."
+    : JSON.stringify(
+        answers
+          .filter((answer) => answer.status === "answered" && answer.answer)
+          .map((answer) => ({
+            subdimension: `${answer.dimension_key}/${answer.subdimension_key}`,
+            question_id: answer.question_id,
+            answer: answer.answer
+          })),
+        null,
+        2
+      )
+}
+
+${
+  answers.filter((answer) => answer.status === "needs_input").length > 0
+    ? `The following remain unanswered, so evidence for them is genuinely absent. Reflect that in confidence rather than inferring:
+${JSON.stringify(
+  answers
+    .filter((answer) => answer.status === "needs_input")
+    .map((answer) => answer.question_id),
+  null,
+  2
+)}`
+    : ""
+}
 
 Canonical SMEAT scoring surface:
 ${JSON.stringify(dimensions, null, 2)}

@@ -61,6 +61,13 @@ export async function runScoring(assessmentId: string, runId: string | null) {
       .select("file_name,document_type,parsed_text")
       .eq("company_id", assessment.company_id);
 
+    // Discovery answers are the richest evidence available. Without them the
+    // agent is scoring 30 subdimensions from a profile and some file contents.
+    const { data: answers } = await supabase
+      .from("assessment_answers")
+      .select("dimension_key,subdimension_key,question_id,answer,status")
+      .eq("assessment_id", assessmentId);
+
     const client = new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") });
     const response = await client.messages.create({
       model: SCORING_MODEL,
@@ -68,7 +75,9 @@ export async function runScoring(assessmentId: string, runId: string | null) {
       // executive summary. 6000 truncated regularly, which surfaced as a JSON
       // parse failure after the call had already been billed.
       max_tokens: 16000,
-      messages: [{ role: "user", content: buildScoringPrompt(company, documents ?? []) }]
+      messages: [
+        { role: "user", content: buildScoringPrompt(company, documents ?? [], answers ?? []) }
+      ]
     });
 
     if (response.stop_reason === "max_tokens") {
