@@ -40,7 +40,7 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
       .eq("assessment_id", id),
     supabase
       .from("agent_runs")
-      .select("id,status,error,created_at")
+      .select("id,status,error,created_at,output_payload")
       .eq("assessment_id", id)
       .eq("run_type", "research")
       .order("created_at", { ascending: false })
@@ -98,6 +98,14 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
   const isRunning = latestRun?.status === "running" && !stalled;
   const hasRun = Boolean(answers && answers.length > 0);
 
+  // Written per dimension as the run advances, so progress is real rather than
+  // a spinner. Shape is set by runDiscovery.
+  const progress = (latestRun?.output_payload ?? null) as {
+    stage?: string;
+    completed_dimensions?: number;
+    total_dimensions?: number;
+  } | null;
+
   return (
     <>
       <PageHead
@@ -142,10 +150,15 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
 
       {isRunning ? (
         <div className="notice" style={{ marginBottom: 20 }}>
-          <strong>Discovery in progress.</strong>
+          <strong>
+            Discovery in progress
+            {progress?.stage ? ` — ${progress.stage}` : ""}.
+          </strong>
           <span className="small">
-            The agent is working through {total} questions against the company profile and any
-            uploaded documents. <AutoRefresh startedAt={latestRun?.created_at} />
+            {progress?.total_dimensions
+              ? `Segment ${(progress.completed_dimensions ?? 0) + 1} of ${progress.total_dimensions}. Answers are saved as each one finishes.`
+              : `Working through ${total} questions against the company profile and any uploaded documents.`}{" "}
+            <AutoRefresh startedAt={latestRun?.created_at} />
           </span>
         </div>
       ) : null}
