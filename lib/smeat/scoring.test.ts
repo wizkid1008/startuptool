@@ -3,6 +3,7 @@ import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { MATURITY_RUBRIC, rubricFor, rubricLevel } from "@/lib/smeat/rubric";
 import { readinessScore, readinessTone } from "@/lib/smeat/presentation";
 import { ALL_QUESTIONS, DISCOVERY_QUESTIONS } from "@/lib/smeat/questions";
+import { computePriorityScore, quadrantFor } from "@/lib/smeat/effort";
 import {
   computeCriticalityScore,
   impactScale,
@@ -191,5 +192,32 @@ describe("discovery questions", () => {
   it("uses unique ids, since answers key off them", () => {
     const ids = ALL_QUESTIONS.map((q) => q.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe("priority", () => {
+  it("rewards a critical gap that is cheap to fix", () => {
+    // Same criticality, different effort.
+    expect(computePriorityScore(16, 1)).toBe(64);
+    expect(computePriorityScore(16, 4)).toBe(16);
+  });
+
+  it("is null when effort is unknown, not an assumed middle", () => {
+    expect(computePriorityScore(16, null)).toBeNull();
+    expect(computePriorityScore(16, undefined)).toBeNull();
+  });
+
+  it("matches the generated column in migration 0006", () => {
+    // criticality * (5 - effort)
+    expect(computePriorityScore(12, 2)).toBe(36);
+    expect(computePriorityScore(4, 3)).toBe(8);
+  });
+
+  it("places rows in the standard quadrants", () => {
+    expect(quadrantFor(12, 1)).toBe("quick_win");
+    expect(quadrantFor(12, 4)).toBe("major_project");
+    expect(quadrantFor(4, 1)).toBe("fill_in");
+    expect(quadrantFor(4, 4)).toBe("thankless");
+    expect(quadrantFor(12, null)).toBeNull();
   });
 });

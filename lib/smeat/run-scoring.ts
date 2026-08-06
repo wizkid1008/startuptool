@@ -98,6 +98,10 @@ export async function runScoring(assessmentId: string, runId: string | null) {
       maturity_score: score.maturity_score,
       impact_score: score.impact_score,
       criticality_score: computeCriticalityScore(score.maturity_score, score.impact_score),
+      effort_score: score.effort_score ?? null,
+      time_score: score.time_score ?? null,
+      cost_score: score.cost_score ?? null,
+      estimate_confidence: score.estimate_confidence ?? null,
       confidence: score.confidence ?? null,
       source: "ai",
       rationale: score.rationale

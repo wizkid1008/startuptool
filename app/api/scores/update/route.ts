@@ -3,10 +3,20 @@ import { failurePage, formatIssues, seeOther } from "@/lib/http";
 import { computeCriticalityScore } from "@/lib/smeat/scoring";
 import { createSessionClient } from "@/lib/supabase/server";
 
+/** Empty select values arrive as "", which should clear the field, not fail. */
+const optionalScale = z
+  .union([z.literal(""), z.coerce.number().int().min(1).max(4)])
+  .optional()
+  .transform((value) => (value === "" || value === undefined ? null : value));
+
 const schema = z.object({
   score_id: z.string().uuid("A valid score is required"),
   maturity_score: z.coerce.number().int().min(1).max(4),
   impact_score: z.coerce.number().int().min(1).max(4),
+  effort_score: optionalScale,
+  time_score: optionalScale,
+  cost_score: optionalScale,
+  estimate_confidence: optionalScale,
   reviewer_note: z.string().trim().max(4000).optional()
 });
 
@@ -36,6 +46,10 @@ export async function POST(request: Request) {
         parsed.data.maturity_score,
         parsed.data.impact_score
       ),
+      effort_score: parsed.data.effort_score,
+      time_score: parsed.data.time_score,
+      cost_score: parsed.data.cost_score,
+      estimate_confidence: parsed.data.estimate_confidence,
       reviewer_note: parsed.data.reviewer_note || null,
       // Records that a human has touched this row. The agent's rationale is
       // deliberately left intact so the original reasoning stays auditable.

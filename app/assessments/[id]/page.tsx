@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
+import { PriorityBoard } from "@/components/PriorityBoard";
 import { ScoreReview } from "@/components/ScoreReview";
 import { SegmentHeatMap } from "@/components/SegmentHeatMap";
 import { findSubdimension } from "@/lib/smeat/model";
@@ -242,6 +243,14 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           </article>
         </section>
       ) : null}
+
+      <section className="section">
+        <div className="card-head">
+          <h2>Priority</h2>
+          <span className="microlabel">Criticality x (5 - effort) · 1-64</span>
+        </div>
+        <PriorityBoard scores={rows} />
+      </section>
 
       <section className="section grid split">
         <article className="card">

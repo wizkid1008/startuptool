@@ -8,6 +8,14 @@ import {
   maturityTone,
   pillClass
 } from "@/lib/smeat/presentation";
+import {
+  costScale,
+  effortScale,
+  estimateConfidenceScale,
+  priorityBand,
+  priorityTone,
+  timeScale
+} from "@/lib/smeat/effort";
 import { rubricFor } from "@/lib/smeat/rubric";
 import { computeCriticalityScore, impactDefinitions } from "@/lib/smeat/scoring";
 
@@ -22,6 +30,11 @@ type ScoreRow = {
   rationale?: string | null;
   reviewer_note?: string | null;
   source?: string | null;
+  effort_score?: number | null;
+  time_score?: number | null;
+  cost_score?: number | null;
+  estimate_confidence?: number | null;
+  priority_score?: number | null;
 };
 
 type ActionRow = {
@@ -134,10 +147,16 @@ export function ScoreReview({
                         {score.impact_score} {impactLabel(score.impact_score)}
                       </span>
                     </span>
-                    <span>
+                    <span className="row" style={{ gap: 6 }}>
                       <span className={pillClass(criticalityTone(criticality))}>
                         {criticality} {criticalityBand(criticality)}
                       </span>
+                      {score.priority_score === null || score.priority_score === undefined ? null : (
+                        <span className={`pill ${priorityTone(Number(score.priority_score))}`}>
+                          P{Number(score.priority_score)}{" "}
+                          {priorityBand(Number(score.priority_score))}
+                        </span>
+                      )}
                     </span>
                     <span className="chev" aria-hidden="true">
                       ▶
@@ -196,6 +215,46 @@ export function ScoreReview({
                             </span>
                             <p>{impactDefinitions[level]}</p>
                           </label>
+                        ))}
+                      </div>
+
+                      <div className="microlabel" style={{ marginTop: 18 }}>
+                        Estimate — what it would take to move this up one level
+                      </div>
+                      <div className="estimates">
+                        {(
+                          [
+                            ["effort_score", "Effort", effortScale, score.effort_score],
+                            ["time_score", "Time", timeScale, score.time_score],
+                            ["cost_score", "Cost", costScale, score.cost_score],
+                            [
+                              "estimate_confidence",
+                              "Confidence",
+                              estimateConfidenceScale,
+                              score.estimate_confidence
+                            ]
+                          ] as const
+                        ).map(([name, label, scale, value]) => (
+                          <div className="field" key={name}>
+                            <label htmlFor={`${name}-${score.id}`}>{label}</label>
+                            <select
+                              id={`${name}-${score.id}`}
+                              name={name}
+                              defaultValue={value ?? ""}
+                            >
+                              <option value="">Not estimated</option>
+                              {[1, 2, 3, 4].map((level) => (
+                                <option key={level} value={level}>
+                                  {level} · {scale[level as 1 | 2 | 3 | 4].label}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="hint">
+                              {value
+                                ? scale[value as 1 | 2 | 3 | 4].definition
+                                : scale[1].definition}
+                            </span>
+                          </div>
                         ))}
                       </div>
 

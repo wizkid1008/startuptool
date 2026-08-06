@@ -58,6 +58,12 @@ export type Database = {
           maturity_score: number;
           impact_score: number;
           criticality_score: number;
+          effort_score: number | null;
+          time_score: number | null;
+          cost_score: number | null;
+          estimate_confidence: number | null;
+          /** Generated in Postgres — criticality x (5 - effort). Read-only. */
+          priority_score: number | null;
           confidence: number | null;
           source: string;
           rationale: string | null;

@@ -90,6 +90,27 @@ Criticality is computed as maturity_score x impact_score (range 1-16), so the
 highest-priority findings are undeveloped capabilities the business critically
 needs. Do not compute it yourself; return only the two ratings.
 
+Also estimate what it would take to move each subdimension up one maturity
+level. These run 1 to 4, low to high — 1 is cheap and fast:
+
+- effort_score: 1=Minimal, days to a few weeks with the existing team and no
+  budget approval. 2=Moderate, one to three months reallocating existing
+  people. 3=Substantial, a quarter or two, a hire or vendor and a budget line.
+  4=Major, six months or more, structural change.
+- time_score: elapsed time before the benefit shows, separately from effort —
+  some things are cheap but slow. 1=weeks, 2=one to three months,
+  3=three to nine months, 4=nine months or more.
+- cost_score: relative to this company's means, not an absolute figure.
+  1=negligible, absorbed in current budget. 2=modest line item.
+  3=significant, needs approval and trades against something else.
+  4=major capital or headcount commitment.
+- estimate_confidence: how well founded your estimate is. 1=speculative,
+  2=indicative, 3=reasoned from evidence, 4=validated.
+
+Be honest with estimate_confidence. Without discovery answers or documents
+covering a subdimension, an effort estimate is speculative — say so with a 1
+rather than presenting a guess as reasoned.
+
 Return only valid JSON with this exact shape:
 {
   "company_name": "string",

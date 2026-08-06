@@ -90,6 +90,11 @@ export const scoreSchema = z.object({
   maturity_score: z.number().int().min(1).max(4),
   impact_score: z.number().int().min(1).max(4),
   confidence: z.number().min(0).max(1).optional(),
+  // Estimates of what it would take to move this up a level. See ./effort.
+  effort_score: z.number().int().min(1).max(4).optional(),
+  time_score: z.number().int().min(1).max(4).optional(),
+  cost_score: z.number().int().min(1).max(4).optional(),
+  estimate_confidence: z.number().int().min(1).max(4).optional(),
   rationale: z.string().min(1),
   evidence: z
     .array(
