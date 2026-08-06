@@ -37,12 +37,17 @@ export async function POST(request: Request) {
   const back = `/assessments/${assessmentId}`;
   const supabase = await createSessionClient();
 
-  const [{ data: assessment, error: assessmentError }, { data: scores }, { data: evidence }] =
-    await Promise.all([
-      supabase.from("assessments").select("*").eq("id", assessmentId).single(),
-      supabase.from("assessment_scores").select("*").eq("assessment_id", assessmentId),
-      supabase.from("assessment_evidence").select("*").eq("assessment_id", assessmentId)
-    ]);
+  const [
+    { data: assessment, error: assessmentError },
+    { data: scores },
+    { data: evidence },
+    { data: actions }
+  ] = await Promise.all([
+    supabase.from("assessments").select("*").eq("id", assessmentId).single(),
+    supabase.from("assessment_scores").select("*").eq("assessment_id", assessmentId),
+    supabase.from("assessment_evidence").select("*").eq("assessment_id", assessmentId),
+    supabase.from("assessment_actions").select("*").eq("assessment_id", assessmentId)
+  ]);
 
   if (assessmentError || !assessment) {
     return failurePage({
@@ -69,7 +74,8 @@ export async function POST(request: Request) {
     criticality_score: Number(score.criticality_score),
     confidence: score.confidence,
     source: score.source,
-    rationale: score.rationale
+    rationale: score.rationale,
+    reviewer_note: score.reviewer_note
   }));
 
   const workbook = XLSX.utils.book_new();
@@ -101,6 +107,24 @@ export async function POST(request: Request) {
       }))
     ),
     "Evidence"
+  );
+
+  // Actions round-trip too, so an exported workbook is a complete record of
+  // the engagement rather than just its scores.
+  XLSX.utils.book_append_sheet(
+    workbook,
+    XLSX.utils.json_to_sheet(
+      (actions ?? []).map((action) => ({
+        dimension_key: action.dimension_key,
+        subdimension_key: action.subdimension_key,
+        title: action.title,
+        owner: action.owner,
+        due_date: action.due_date,
+        status: action.status,
+        detail: action.detail
+      }))
+    ),
+    "Actions"
   );
 
   let buffer: Buffer;

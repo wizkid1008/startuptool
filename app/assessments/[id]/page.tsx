@@ -25,7 +25,13 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createSessionClient();
 
-  const [{ data: assessment }, { data: scores }, { data: evidence }, { data: latestRun }] =
+  const [
+    { data: assessment },
+    { data: scores },
+    { data: evidence },
+    { data: actions },
+    { data: latestRun }
+  ] =
     await Promise.all([
       supabase.from("assessments").select("*").eq("id", id).single(),
       supabase
@@ -39,6 +45,12 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         .eq("assessment_id", id)
         .order("created_at", { ascending: false })
         .limit(12),
+      supabase
+        .from("assessment_actions")
+        .select("id,assessment_score_id,dimension_key,subdimension_key,title,owner,due_date,status")
+        .eq("assessment_id", id)
+        .order("created_at", { ascending: true }),
+
       supabase
         .from("agent_runs")
         .select("id,status,error,created_at,completed_at")
@@ -310,7 +322,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           <h2>Score matrix</h2>
           <span className="microlabel">Click a row to edit</span>
         </div>
-        <ScoreReview scores={rows} />
+        <ScoreReview assessmentId={assessment.id} scores={rows} actions={actions ?? []} />
       </section>
     </>
   );

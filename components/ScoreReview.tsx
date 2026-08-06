@@ -24,6 +24,31 @@ type ScoreRow = {
   source?: string | null;
 };
 
+type ActionRow = {
+  id: string;
+  assessment_score_id: string | null;
+  dimension_key: string | null;
+  subdimension_key: string | null;
+  title: string;
+  owner: string | null;
+  due_date: string | null;
+  status: string;
+};
+
+const ACTION_STATUS_LABEL: Record<string, string> = {
+  open: "Open",
+  in_progress: "In progress",
+  done: "Done",
+  dropped: "Dropped"
+};
+
+const ACTION_STATUS_TONE: Record<string, string> = {
+  open: "pill warn",
+  in_progress: "pill info",
+  done: "pill good",
+  dropped: "pill ghost"
+};
+
 const SOURCE_LABEL: Record<string, string> = {
   ai: "AI",
   manual: "Edited",
@@ -45,10 +70,24 @@ function sourceBadge(source?: string | null) {
  * `details`/`summary` handles disclosure and `:has(input:checked)` handles the
  * selected state, so no client JavaScript is involved.
  */
-export function ScoreReview({ scores }: { scores: ScoreRow[] }) {
+export function ScoreReview({
+  assessmentId,
+  scores,
+  actions = []
+}: {
+  assessmentId: string;
+  scores: ScoreRow[];
+  actions?: ActionRow[];
+}) {
   const byKey = new Map(
     scores.map((score) => [`${score.dimension_key}:${score.subdimension_key}`, score])
   );
+
+  const actionsByScore = new Map<string, ActionRow[]>();
+  for (const action of actions) {
+    const key = action.assessment_score_id ?? `${action.dimension_key}:${action.subdimension_key}`;
+    actionsByScore.set(key, [...(actionsByScore.get(key) ?? []), action]);
+  }
 
   return (
     <div className="stack">
@@ -196,6 +235,61 @@ export function ScoreReview({ scores }: { scores: ScoreRow[] }) {
                         </ul>
                       </div>
                     ) : null}
+
+                    <div className="questions">
+                      <span className="microlabel">Client actions</span>
+
+                      {(actionsByScore.get(score.id) ?? []).map((action) => (
+                        <div className="actionrow" key={action.id}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 600 }}>{action.title}</div>
+                            <div className="hint">
+                              {[action.owner, action.due_date ? `due ${action.due_date}` : null]
+                                .filter(Boolean)
+                                .join(" · ") || "No owner or due date"}
+                            </div>
+                          </div>
+                          <form method="post" action="/api/actions" className="row">
+                            <input type="hidden" name="intent" value="update" />
+                            <input type="hidden" name="action_id" value={action.id} />
+                            <select name="status" defaultValue={action.status}>
+                              {Object.entries(ACTION_STATUS_LABEL).map(([value, label]) => (
+                                <option key={value} value={value}>
+                                  {label}
+                                </option>
+                              ))}
+                            </select>
+                            <button className="secondary small" type="submit">
+                              Set
+                            </button>
+                          </form>
+                          <span className={ACTION_STATUS_TONE[action.status] ?? "pill"}>
+                            {ACTION_STATUS_LABEL[action.status] ?? action.status}
+                          </span>
+                          <form method="post" action="/api/actions">
+                            <input type="hidden" name="intent" value="delete" />
+                            <input type="hidden" name="action_id" value={action.id} />
+                            <button className="quiet small" type="submit" aria-label="Delete action">
+                              ×
+                            </button>
+                          </form>
+                        </div>
+                      ))}
+
+                      <form method="post" action="/api/actions" className="actionform">
+                        <input type="hidden" name="intent" value="create" />
+                        <input type="hidden" name="assessment_id" value={assessmentId} />
+                        <input type="hidden" name="assessment_score_id" value={score.id} />
+                        <input type="hidden" name="dimension_key" value={dimension.key} />
+                        <input type="hidden" name="subdimension_key" value={subdimension.key} />
+                        <input name="title" placeholder="What needs doing" required />
+                        <input name="owner" placeholder="Owner" />
+                        <input name="due_date" type="date" aria-label="Due date" />
+                        <button className="secondary" type="submit">
+                          Add
+                        </button>
+                      </form>
+                    </div>
                   </div>
                 </details>
               );
