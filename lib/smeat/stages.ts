@@ -98,7 +98,7 @@ export function computeStages(input: StageInput): Stage[] {
     },
     {
       key: "score",
-      label: "Score",
+      label: "Assessment",
       href: assessment,
       state: scoreState,
       detail:
@@ -113,7 +113,7 @@ export function computeStages(input: StageInput): Stage[] {
       state: reviewState,
       detail:
         input.scoreCount === 0
-          ? "Score first"
+          ? "Assess first"
           : input.status === "finalized"
             ? "Finalised"
             : input.editedCount > 0
@@ -127,7 +127,7 @@ export function computeStages(input: StageInput): Stage[] {
       state: planState,
       detail:
         input.scoreCount === 0
-          ? "Score first"
+          ? "Assess first"
           : input.actionCount > 0
             ? `${input.actionCount} action${input.actionCount === 1 ? "" : "s"}`
             : input.estimatedCount > 0
