@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { absoluteUrl } from "@/lib/origin";
 
 const PUBLIC_PATHS = ["/login", "/auth"];
 
@@ -46,18 +47,16 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Built from the forwarded origin, not request.nextUrl — behind a proxy that
+  // carries the internal bind address and sends the browser to localhost.
   if (!user && !isPublic(pathname)) {
-    const redirect = request.nextUrl.clone();
-    redirect.pathname = "/login";
-    redirect.searchParams.set("next", pathname);
-    return NextResponse.redirect(redirect);
+    const target = absoluteUrl("/login", request);
+    target.searchParams.set("next", pathname);
+    return NextResponse.redirect(target);
   }
 
   if (user && pathname === "/login") {
-    const redirect = request.nextUrl.clone();
-    redirect.pathname = "/";
-    redirect.search = "";
-    return NextResponse.redirect(redirect);
+    return NextResponse.redirect(absoluteUrl("/", request));
   }
 
   return response;

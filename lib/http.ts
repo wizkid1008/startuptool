@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { absoluteUrl } from "@/lib/origin";
 
 /**
  * Redirect after a form POST.
@@ -6,9 +7,12 @@ import { NextResponse } from "next/server";
  * `redirect()` from next/navigation emits a 307 in route handlers, which
  * preserves the method — the browser then re-POSTs to a page route and gets a
  * 405. 303 is the correct status for POST → GET.
+ *
+ * The target is resolved against the forwarded origin rather than
+ * `request.url`, which behind a proxy is the internal bind address.
  */
 export function seeOther(path: string, request: Request) {
-  return NextResponse.redirect(new URL(path, request.url), 303);
+  return NextResponse.redirect(absoluteUrl(path, request), 303);
 }
 
 function escapeHtml(value: string) {
