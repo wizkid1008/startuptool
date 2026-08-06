@@ -749,6 +749,188 @@ tbody tr.grouprow td {
   padding: 8px 14px;
 }
 
+/* Score review ============================================================= */
+
+details {
+  border-bottom: 1px solid var(--line);
+}
+
+details:last-child {
+  border-bottom: 0;
+}
+
+summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 150px 130px 18px;
+  gap: 12px;
+  align-items: center;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary:hover {
+  background: var(--paper);
+}
+
+.chev {
+  color: var(--faint);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+details[open] .chev {
+  transform: rotate(90deg);
+}
+
+details[open] summary {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.expand {
+  padding: 18px 14px 24px;
+  background: var(--paper);
+}
+
+.scorerow-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.scorerow-empty:last-child {
+  border-bottom: 0;
+}
+
+/* Rubric level cards double as radio labels — the selected state comes from
+   :has(), so choosing a rating needs no JavaScript. */
+.levels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.lvl {
+  position: relative;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--bg);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.lvl:hover {
+  border-color: var(--line-strong);
+}
+
+.lvl input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.lvl:has(input:checked) {
+  border: 2px solid var(--ink);
+  padding: 11px;
+  color: var(--ink-2);
+}
+
+.lvl:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.lvlnum {
+  display: block;
+  font-family: var(--mono, inherit);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 8px;
+}
+
+.lvl:has(input:checked) .lvlnum {
+  color: var(--ink);
+}
+
+.lvl ul {
+  margin: 0;
+  padding-left: 15px;
+}
+
+.lvl li {
+  margin-bottom: 5px;
+}
+
+.lvl p {
+  margin: 0;
+}
+
+.levels.impact .lvl {
+  font-size: 12px;
+}
+
+.rationale {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.questions {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-strong);
+}
+
+.questions ul {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.questions li {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 1080px) {
+  .levels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  summary {
+    grid-template-columns: minmax(0, 1fr) 110px 18px;
+  }
+
+  .levels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Lists ==================================================================== */
 
 .checklist {

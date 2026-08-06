@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
-import { ScoreMatrix } from "@/components/ScoreMatrix";
+import { ScoreReview } from "@/components/ScoreReview";
 import { SegmentHeatMap } from "@/components/SegmentHeatMap";
 import { findSubdimension } from "@/lib/smeat/model";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
@@ -308,9 +308,9 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       <section className="section">
         <div className="card-head">
           <h2>Score matrix</h2>
-          <span className="microlabel">All 30 subdimensions</span>
+          <span className="microlabel">Click a row to edit</span>
         </div>
-        <ScoreMatrix scores={rows} />
+        <ScoreReview scores={rows} />
       </section>
     </>
   );

@@ -1,12 +1,17 @@
 /**
- * SMEAT maturity rubric.
+ * SMEAT maturity rubric and discovery questions.
  *
- * Extracted programmatically from `reference/SMEAT Tool.xlsm`, Instructions
- * sheet, rows 22-63. Do not hand-edit: revise the workbook and re-extract, so
- * the workbook stays the single source of truth.
+ * Extracted programmatically from `reference/SMEAT Tool.xlsm` — the maturity
+ * definitions from the Instructions sheet (rows 22-63), the questions from the
+ * "Questions to Ask" block in each dimension sheet. Do not hand-edit: revise
+ * the workbook and re-extract, so it stays the single source of truth.
  *
  * 30 subdimensions x 4 levels. Level 1 is the most developed, level 4 the
  * least — the same direction as `maturityScale` in ./scoring.
+ *
+ * Only 15 subdimensions carry questions. Finance, Analytics and Risk have the
+ * "Questions to Ask" heading in the workbook with nothing written under it, so
+ * `questions` is empty for those and the UI says so rather than inventing any.
  */
 
 export type RubricLevel = {
@@ -19,13 +24,14 @@ export type RubricEntry = {
   subdimension_key: string;
   label: string;
   levels: RubricLevel[];
+  questions: string[];
 };
 
 export const MATURITY_RUBRIC: RubricEntry[] = [
     {
-        "label":  "Products, Markets and Channels",
-        "subdimension_key":  "products_markets_channels",
         "dimension_key":  "customer",
+        "subdimension_key":  "products_markets_channels",
+        "label":  "Products, Markets and Channels",
         "levels":  [
                        {
                            "level":  1,
@@ -60,12 +66,21 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The company has not yet been able to segement the market."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "How do you categorize your lines of business and what are your plans for expansion?",
+                          "For each line, how do you deliver them geographically? Are you condiering entering into new markets? Timeframe?",
+                          "How would you characterize your approach to markets and sales channels?",
+                          "What innovation is occurring within the segment? Does the firm have the right product mix to target the segmentation?",
+                          "What is the value proposition to each of its segmented clients?",
+                          "What is the current product portfolio of the firm?",
+                          "Do you have plans to extend this differentiation?"
+                      ]
     },
     {
-        "label":  "Marketing and Branding",
-        "subdimension_key":  "marketing_branding",
         "dimension_key":  "customer",
+        "subdimension_key":  "marketing_branding",
+        "label":  "Marketing and Branding",
         "levels":  [
                        {
                            "level":  1,
@@ -98,12 +113,19 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "As the company is nacent, the firm has limited word of mouth marketing opportunities."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "How do yu seek to understand the current and future needs of your clients?",
+                          "Do you know what prevents potential customers from choosing you?",
+                          "How important id branding to your service offering?",
+                          "Do you forsee any planned or proposed changed to brand strategy?",
+                          "Describe how your marketing strategy has changed to incorporate digital marketing?"
+                      ]
     },
     {
-        "label":  "Sales and Pricing",
-        "subdimension_key":  "sales_pricing",
         "dimension_key":  "customer",
+        "subdimension_key":  "sales_pricing",
+        "label":  "Sales and Pricing",
         "levels":  [
                        {
                            "level":  1,
@@ -138,12 +160,17 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "There is no incentive mechanism in place for sales staff."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "How does the firm set its pricing strategy?",
+                          "Does the company have any strategy in place to push sales through various channels?",
+                          "Is there any incentive structure in place to encourage sales by sales staff? If so what is this structure?"
+                      ]
     },
     {
-        "label":  "Customer Experience",
-        "subdimension_key":  "customer_experience",
         "dimension_key":  "customer",
+        "subdimension_key":  "customer_experience",
+        "label":  "Customer Experience",
         "levels":  [
                        {
                            "level":  1,
@@ -176,12 +203,17 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise has no system in place to measure customer satisfaction."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "For each of the revenue streams, who are your largest competititrso and how do you differntiate the customer experience?",
+                          "Does the enterprise engage with the customer to ensure that that this is successful?",
+                          "How do you measure your customer\u0027s satisfaction?"
+                      ]
     },
     {
-        "label":  "Capability",
-        "subdimension_key":  "capability",
         "dimension_key":  "people",
+        "subdimension_key":  "capability",
+        "label":  "Capability",
         "levels":  [
                        {
                            "level":  1,
@@ -214,12 +246,17 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The company does not have all of the human resources needed within the firm to be fully operational"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "The key question here is to understand if the company has the personal required to be able to implement their business strategy.",
+                          "What type of skill and experience are needed for this type of business?",
+                          "Does key management have the required level of personal style and motivation, intellectual ability, technical or professional skills and expertise, and behavior to implement the strategy?"
+                      ]
     },
     {
-        "label":  "Performance Management",
-        "subdimension_key":  "performance_management",
         "dimension_key":  "people",
+        "subdimension_key":  "performance_management",
+        "label":  "Performance Management",
         "levels":  [
                        {
                            "level":  1,
@@ -253,12 +290,20 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "There is no performance management system in place"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· How do you categorize your line s of business?",
+                          "· What are your plans for expansion?",
+                          "· What is the value proposition to each of its segmented clients?",
+                          "· What innovation is occurring within the segment? Does the firm have the right product mix to target the segmentation?",
+                          "· What is the current product portfolio of the firm?",
+                          "· What is the pricing strategy of the firm?"
+                      ]
     },
     {
-        "label":  "Innovation",
-        "subdimension_key":  "innovation",
         "dimension_key":  "people",
+        "subdimension_key":  "innovation",
+        "label":  "Innovation",
         "levels":  [
                        {
                            "level":  1,
@@ -294,12 +339,20 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The business does not attract talent to innovate and disrupt market dynamics"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· How do you categorize your line s of business?",
+                          "· What are your plans for expansion?",
+                          "· What is the value proposition to each of its segmented clients?",
+                          "· What innovation is occurring within the segment? Does the firm have the right product mix to target the segmentation?",
+                          "· What is the current product portfolio of the firm?",
+                          "· What is the pricing strategy of the firm?"
+                      ]
     },
     {
-        "label":  "Leadership",
-        "subdimension_key":  "leadership",
         "dimension_key":  "people",
+        "subdimension_key":  "leadership",
+        "label":  "Leadership",
         "levels":  [
                        {
                            "level":  1,
@@ -328,12 +381,20 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "Leadership does not have the ability to inspire and lead the company"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· How do you categorize your line s of business?",
+                          "· What are your plans for expansion?",
+                          "· What is the value proposition to each of its segmented clients?",
+                          "· What innovation is occurring within the segment? Does the firm have the right product mix to target the segmentation?",
+                          "· What is the current product portfolio of the firm?",
+                          "· What is the pricing strategy of the firm?"
+                      ]
     },
     {
-        "label":  "Rewards",
-        "subdimension_key":  "rewards",
         "dimension_key":  "people",
+        "subdimension_key":  "rewards",
+        "label":  "Rewards",
         "levels":  [
                        {
                            "level":  1,
@@ -364,12 +425,20 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "There is no system in place to reward high performing individuals within the company"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· How do you categorize your line s of business?",
+                          "· What are your plans for expansion?",
+                          "· What is the value proposition to each of its segmented clients?",
+                          "· What innovation is occurring within the segment? Does the firm have the right product mix to target the segmentation?",
+                          "· What is the current product portfolio of the firm?",
+                          "· What is the pricing strategy of the firm?"
+                      ]
     },
     {
-        "label":  "Sourcing and Supply Chain",
-        "subdimension_key":  "sourcing_supply_chain",
         "dimension_key":  "operations",
+        "subdimension_key":  "sourcing_supply_chain",
+        "label":  "Sourcing and Supply Chain",
         "levels":  [
                        {
                            "level":  1,
@@ -403,12 +472,18 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise does not have an established supply chain operation"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "What does the in-bound logistics from suppliers look like for the firm?",
+                          "The major question is to understand the ability of the supplier to be able to timely supply quality and quantity to the company.",
+                          "What is the supplier’s payment terms? Is there any ability to be able to extend payment to improve cash flows?",
+                          "Does the company have contracts with suppliers? If yes, what type of contracts are in place?"
+                      ]
     },
     {
-        "label":  "Internal Operations and Assets",
-        "subdimension_key":  "internal_operations_assets",
         "dimension_key":  "operations",
+        "subdimension_key":  "internal_operations_assets",
+        "label":  "Internal Operations and Assets",
         "levels":  [
                        {
                            "level":  1,
@@ -437,12 +512,19 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise has no tracking system in place to monitor overall production or quality of final goods or services produced."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "What capability and capacity does the firm have to be able to warehouse inventory and finished products?",
+                          "Are the company’s facilities adequate to be able to service the company with the strategy that it wants to implement?",
+                          "What is the current production capacity, utilization, break-even of the internal operations?",
+                          "Does the firm have proper quality and safety standard for the product lines?",
+                          "Does the firm have systems in place to monitor and control for quality?"
+                      ]
     },
     {
-        "label":  "Distribution and Logistics",
-        "subdimension_key":  "distribution_logistics",
         "dimension_key":  "operations",
+        "subdimension_key":  "distribution_logistics",
+        "label":  "Distribution and Logistics",
         "levels":  [
                        {
                            "level":  1,
@@ -476,12 +558,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise does not have an established distribution operations in place"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· What does the out-bound logistics to customer look like for the firm?"
+                      ]
     },
     {
-        "label":  "Operations Strategy",
-        "subdimension_key":  "operations_strategy",
         "dimension_key":  "operations",
+        "subdimension_key":  "operations_strategy",
+        "label":  "Operations Strategy",
         "levels":  [
                        {
                            "level":  1,
@@ -513,12 +598,16 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "XX?"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "How is operational strategy defined and managed?",
+                          "How are the outcomes of operational strategy measured and reported?"
+                      ]
     },
     {
-        "label":  "Operational Excellence and Continuous Improvement",
-        "subdimension_key":  "operational_excellence",
         "dimension_key":  "operations",
+        "subdimension_key":  "operational_excellence",
+        "label":  "Operational Excellence and Continuous Improvement",
         "levels":  [
                        {
                            "level":  1,
@@ -550,12 +639,17 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "Operational excellence is not yet a priority for the enterprise."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "Have you performed and assessment of the outsources, shared service, and in-house capability of various elements of operations?",
+                          "How is continuous improvement embedded within the organization?",
+                          "How do you measure improvements across the organization?"
+                      ]
     },
     {
-        "label":  "Finance Process and Control",
-        "subdimension_key":  "finance_process_control",
         "dimension_key":  "finance",
+        "subdimension_key":  "finance_process_control",
+        "label":  "Finance Process and Control",
         "levels":  [
                        {
                            "level":  1,
@@ -587,12 +681,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The financial controls in place and rudimentary and ineffective."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Stakeholder Management",
-        "subdimension_key":  "stakeholder_management",
         "dimension_key":  "finance",
+        "subdimension_key":  "stakeholder_management",
+        "label":  "Stakeholder Management",
         "levels":  [
                        {
                            "level":  1,
@@ -624,12 +721,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The business does not have good engagement or assigned responsibility to any stakeholder."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "People and Organization",
-        "subdimension_key":  "people_organization",
         "dimension_key":  "finance",
+        "subdimension_key":  "people_organization",
+        "label":  "People and Organization",
         "levels":  [
                        {
                            "level":  1,
@@ -662,12 +762,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "Financial and operational controls are not codified."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Data and Technology",
-        "subdimension_key":  "data_technology",
         "dimension_key":  "finance",
+        "subdimension_key":  "data_technology",
+        "label":  "Data and Technology",
         "levels":  [
                        {
                            "level":  1,
@@ -699,12 +802,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The firm does not have systems in place to collect relevant financial and operational data."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Funding Growth",
-        "subdimension_key":  "funding_growth",
         "dimension_key":  "finance",
+        "subdimension_key":  "funding_growth",
+        "label":  "Funding Growth",
         "levels":  [
                        {
                            "level":  1,
@@ -742,12 +848,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "Lack of funding constrains current operations and key business areas"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Digital Enterprise",
-        "subdimension_key":  "digital_enterprise",
         "dimension_key":  "analytics",
+        "subdimension_key":  "digital_enterprise",
+        "label":  "Digital Enterprise",
         "levels":  [
                        {
                            "level":  1,
@@ -785,12 +894,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The organization does not have in place the ability to collect business level data"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Data and Analytics",
-        "subdimension_key":  "data_analytics",
         "dimension_key":  "analytics",
+        "subdimension_key":  "data_analytics",
+        "label":  "Data and Analytics",
         "levels":  [
                        {
                            "level":  1,
@@ -826,12 +938,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise spends no time to analyze data because even collecting data for the firm currently has limitations."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Security and Privacy",
-        "subdimension_key":  "security_privacy",
         "dimension_key":  "analytics",
+        "subdimension_key":  "security_privacy",
+        "label":  "Security and Privacy",
         "levels":  [
                        {
                            "level":  1,
@@ -867,12 +982,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The company does not internally have the capabilities to understand the security and privacy risks and has yet to outsource this function."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Governance",
-        "subdimension_key":  "governance",
         "dimension_key":  "risk",
+        "subdimension_key":  "governance",
+        "label":  "Governance",
         "levels":  [
                        {
                            "level":  1,
@@ -902,12 +1020,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "There is no defined governance structure in place."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Risk Management",
-        "subdimension_key":  "risk_management",
         "dimension_key":  "risk",
+        "subdimension_key":  "risk_management",
+        "label":  "Risk Management",
         "levels":  [
                        {
                            "level":  1,
@@ -941,12 +1062,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The company is not fully aware of all regulatory and compliance activities that need to take place."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Policy and Compliance",
-        "subdimension_key":  "policy_compliance",
         "dimension_key":  "risk",
+        "subdimension_key":  "policy_compliance",
+        "label":  "Policy and Compliance",
         "levels":  [
                        {
                            "level":  1,
@@ -979,12 +1103,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The company does not have developed policies in place to account for the risk, financial, and operational aspects of the firm."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Stakeholder Management",
-        "subdimension_key":  "stakeholder_management",
         "dimension_key":  "risk",
+        "subdimension_key":  "stakeholder_management",
+        "label":  "Stakeholder Management",
         "levels":  [
                        {
                            "level":  1,
@@ -1013,12 +1140,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "Management has limited ability to inform stakeholders on the risk management practices as these have not yet developed strategies around risk mitigation"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Impact Metrics",
-        "subdimension_key":  "impact_metrics",
         "dimension_key":  "impact",
+        "subdimension_key":  "impact_metrics",
+        "label":  "Impact Metrics",
         "levels":  [
                        {
                            "level":  1,
@@ -1045,12 +1175,17 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The firm does not understand what type of social impact that it creates through its business operations"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+                          "· Does the company currently collect impact measurements? If yes, what are the metrics that the company collects?",
+                          "· How does the company collect its impact information?",
+                          "· Does the company utilize the collected data to make informed business decisions?"
+                      ]
     },
     {
-        "label":  "Technology",
-        "subdimension_key":  "technology",
         "dimension_key":  "impact",
+        "subdimension_key":  "technology",
+        "label":  "Technology",
         "levels":  [
                        {
                            "level":  1,
@@ -1082,12 +1217,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The firm does not have systems in place to collect relevant social impact data."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Data and Analytics",
-        "subdimension_key":  "data_analytics",
         "dimension_key":  "impact",
+        "subdimension_key":  "data_analytics",
+        "label":  "Data and Analytics",
         "levels":  [
                        {
                            "level":  1,
@@ -1121,12 +1259,15 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The enterprise spends no time to analyze data because even collecting social impact data for the firm currently has limitations."
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     },
     {
-        "label":  "Design",
-        "subdimension_key":  "design",
         "dimension_key":  "impact",
+        "subdimension_key":  "design",
+        "label":  "Design",
         "levels":  [
                        {
                            "level":  1,
@@ -1154,7 +1295,10 @@ export const MATURITY_RUBRIC: RubricEntry[] = [
                                            "The business model of the enterprise has no forethought into the design of the model"
                                        ]
                        }
-                   ]
+                   ],
+        "questions":  [
+
+                      ]
     }
 ];
 
@@ -1172,4 +1316,9 @@ export function rubricLevel(dimensionKey: string, subdimensionKey: string, level
   return (
     rubricFor(dimensionKey, subdimensionKey)?.levels.find((l) => l.level === level) ?? null
   );
+}
+
+/** Discovery questions for one subdimension. Empty where the workbook has none. */
+export function questionsFor(dimensionKey: string, subdimensionKey: string) {
+  return rubricFor(dimensionKey, subdimensionKey)?.questions ?? [];
 }
