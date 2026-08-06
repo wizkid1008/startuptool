@@ -4,10 +4,11 @@ import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
 import { PriorityBoard } from "@/components/PriorityBoard";
+import { ProposalList } from "@/components/ProposalList";
 import { Stepper } from "@/components/Stepper";
 import { ACTION_CRITICALITY_FLOOR } from "@/lib/smeat/actions";
 import { findSubdimension, SMEAT_DIMENSIONS } from "@/lib/smeat/model";
-import { formatDate } from "@/lib/smeat/presentation";
+import { criticalityLevel, formatDate } from "@/lib/smeat/presentation";
 import { isStaleRun } from "@/lib/smeat/run-scoring";
 import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -171,9 +172,10 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <p className="hint" style={{ marginBottom: 12 }}>
-            The agent reads each subdimension at criticality {ACTION_CRITICALITY_FLOOR} or above,
-            takes the rubric level it sits at now and the one above it, and proposes the work that
-            closes the distance. Accept the ones worth doing; the rest can go.
+            The agent reads every subdimension at criticality{" "}
+            {criticalityLevel(ACTION_CRITICALITY_FLOOR)} or above, takes the rubric level it sits
+            at now and the one above it, and proposes the work that closes the distance. Accept
+            the ones worth doing; the rest can go.
           </p>
 
           {proposalRun?.status === "failed" ? (
@@ -193,49 +195,20 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
             </div>
           ) : null}
 
-          <div className="stack tight">
-            {proposals.map((action) => {
-              const subdimension =
-                action.dimension_key && action.subdimension_key
-                  ? findSubdimension(action.dimension_key, action.subdimension_key)
-                  : null;
-
-              return (
-                <article className="card" key={action.id}>
-                  <div className="between">
-                    <div style={{ minWidth: 0 }}>
-                      <strong>{action.title}</strong>
-                      <div className="hint">
-                        {subdimension?.label ?? action.subdimension_key}
-                        {action.detail ? ` · ${action.detail}` : ""}
-                      </div>
-                    </div>
-                    <span className="row" style={{ gap: 8 }}>
-                      <form method="post" action="/api/actions">
-                        <input type="hidden" name="intent" value="accept" />
-                        <input type="hidden" name="action_id" value={action.id} />
-                        <button className="small" type="submit">
-                          Accept
-                        </button>
-                      </form>
-                      <form method="post" action="/api/actions">
-                        <input type="hidden" name="intent" value="delete" />
-                        <input type="hidden" name="action_id" value={action.id} />
-                        <button className="quiet small" type="submit">
-                          Discard
-                        </button>
-                      </form>
-                    </span>
-                  </div>
-                  {action.rationale ? (
-                    <p className="small muted" style={{ marginTop: 8 }}>
-                      {action.rationale}
-                    </p>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
+          <ProposalList
+            proposals={proposals.map((action) => ({
+              id: action.id,
+              title: action.title,
+              subdimensionLabel:
+                (action.dimension_key && action.subdimension_key
+                  ? findSubdimension(action.dimension_key, action.subdimension_key)?.label
+                  : null) ??
+                action.subdimension_key ??
+                "—",
+              effortLabel: action.detail,
+              rationale: action.rationale
+            }))}
+          />
         </section>
       ) : null}
 

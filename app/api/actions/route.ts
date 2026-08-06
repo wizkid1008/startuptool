@@ -120,14 +120,30 @@ export async function POST(request: Request) {
             .select("assessment_id")
             .single();
 
+  // The proposal list acts in the background via fetch; a plain form post still
+  // redirects, so the page works with JavaScript disabled.
+  const wantsJson = request.headers.get("accept")?.includes("application/json");
+
   if (error || !data) {
+    const detail =
+      error?.message ?? "The action was not found, or you do not have access to it.";
+    const status = error ? 500 : 404;
+
+    if (wantsJson) {
+      return Response.json({ ok: false, error: detail }, { status });
+    }
+
     return failurePage({
       title: "That action could not be updated.",
-      detail: error?.message ?? "The action was not found, or you do not have access to it.",
+      detail,
       backHref: "/assessments",
       backLabel: "Back to assessments",
-      status: error ? 500 : 404
+      status
     });
+  }
+
+  if (wantsJson) {
+    return Response.json({ ok: true });
   }
 
   return seeOther(`/assessments/${data.assessment_id}/plan`, request);

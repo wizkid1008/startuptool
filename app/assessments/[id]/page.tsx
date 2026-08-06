@@ -13,6 +13,7 @@ import {
   assessmentStatusTone,
   formatRelative,
   criticalityBand,
+  criticalityLevel,
   criticalityTone,
   readinessScore,
   readinessTone,
@@ -289,7 +290,10 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
               {averageCriticality === null ? (
                 <span className="muted">—</span>
               ) : (
-                averageCriticality.toFixed(1)
+                <>
+                  {criticalityLevel(averageCriticality)}
+                  <span className="muted"> / 4</span>
+                </>
               )}
             </div>
             <div>
@@ -328,7 +332,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
       <section className="section">
         <div className="card-head">
           <h2>Segments</h2>
-          <span className="microlabel">Select a segment · criticality 1–16</span>
+          <span className="microlabel">Select a segment · criticality 1–4</span>
         </div>
         <SegmentExplorer
           assessmentId={assessment.id}

@@ -41,6 +41,25 @@ export function criticalityBand(score: number) {
   return "Low";
 }
 
+/**
+ * The same four bands as a 1–4 level, which is what gets shown.
+ *
+ * Maturity and impact are each 1–4, so their product runs 1–16 — a scale
+ * nobody reads without being told the range, and one where the gap between 9
+ * and 12 means nothing on its own. The stored score stays 1–16, because that
+ * is what the workbook computes and what the Excel export has to match; this
+ * is only how it is presented.
+ *
+ * The cut points are the existing band boundaries, so the level, the label and
+ * the colour never disagree.
+ */
+export function criticalityLevel(score: number): 1 | 2 | 3 | 4 {
+  if (score >= 12) return 4;
+  if (score >= 8) return 3;
+  if (score >= 4) return 2;
+  return 1;
+}
+
 /** Percentage of the 1–16 range, for meters. */
 export function criticalityPercent(score: number) {
   return Math.max(0, Math.min(100, (score / MAX_CRITICALITY) * 100));

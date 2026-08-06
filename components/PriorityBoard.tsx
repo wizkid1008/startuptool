@@ -8,7 +8,7 @@ import {
   type Quadrant
 } from "@/lib/smeat/effort";
 import { findSubdimension } from "@/lib/smeat/model";
-import { criticalityTone, pillClass } from "@/lib/smeat/presentation";
+import { criticalityBand, criticalityLevel, criticalityTone, pillClass } from "@/lib/smeat/presentation";
 
 type Row = {
   id: string;
@@ -124,8 +124,11 @@ export function PriorityBoard({ scores }: { scores: Row[] }) {
                       <div className="hint">{score.dimension_key}</div>
                     </td>
                     <td>
-                      <span className={pillClass(criticalityTone(criticality))}>
-                        {criticality}
+                      <span
+                        className={pillClass(criticalityTone(criticality))}
+                        title={`${criticality} of 16 · maturity × impact`}
+                      >
+                        {criticalityLevel(criticality)} {criticalityBand(criticality)}
                       </span>
                     </td>
 

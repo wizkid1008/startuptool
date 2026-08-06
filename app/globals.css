@@ -1085,6 +1085,76 @@ details[open] summary {
   justify-content: center;
 }
 
+/* Proposals ================================================================ */
+
+.proposals {
+  display: grid;
+  gap: 8px;
+}
+
+/* Grid rather than flex: the verdict column is a fixed track, so a long title
+   wraps within its own column instead of squeezing the buttons onto two
+   lines. */
+.proposal {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  padding: 14px 16px;
+}
+
+.proposal-body {
+  min-width: 0;
+}
+
+.proposal-verdict {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.proposal-verdict button {
+  white-space: nowrap;
+}
+
+.proposal-error {
+  margin: 8px 0 0;
+  color: var(--bad);
+  font-size: 13px;
+}
+
+/* Settled cards stay in place rather than collapsing — a list that reflows
+   under the cursor makes the next click a guess. */
+.proposal.settled {
+  padding: 8px 16px;
+  background: transparent;
+  border-style: dashed;
+  align-items: center;
+}
+
+.proposal.settled .proposal-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.proposal.settled .proposal-body .small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .proposal {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* States =================================================================== */
 
 .empty {

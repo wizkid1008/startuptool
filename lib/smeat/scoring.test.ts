@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { MATURITY_RUBRIC, rubricFor, rubricLevel } from "@/lib/smeat/rubric";
-import { readinessScore, readinessTone } from "@/lib/smeat/presentation";
+import {
+  criticalityBand,
+  criticalityLevel,
+  readinessScore,
+  readinessTone
+} from "@/lib/smeat/presentation";
 import { ALL_QUESTIONS, DISCOVERY_QUESTIONS } from "@/lib/smeat/questions";
 import { computePriorityScore, quadrantFor } from "@/lib/smeat/effort";
 import {
@@ -219,5 +224,39 @@ describe("priority", () => {
     expect(quadrantFor(4, 1)).toBe("fill_in");
     expect(quadrantFor(4, 4)).toBe("thankless");
     expect(quadrantFor(12, null)).toBeNull();
+  });
+});
+
+describe("criticality shown out of four", () => {
+  it("uses the same cut points as the band labels", () => {
+    for (let score = MIN_CRITICALITY; score <= MAX_CRITICALITY; score += 1) {
+      const level = criticalityLevel(score);
+      const band = criticalityBand(score);
+      expect(["Low", "Moderate", "High", "Critical"][level - 1]).toBe(band);
+    }
+  });
+
+  it("never goes outside 1–4 across every maturity × impact pair", () => {
+    for (let maturity = 1; maturity <= 4; maturity += 1) {
+      for (let impact = 1; impact <= 4; impact += 1) {
+        const level = criticalityLevel(computeCriticalityScore(maturity, impact));
+        expect(level).toBeGreaterThanOrEqual(1);
+        expect(level).toBeLessThanOrEqual(4);
+      }
+    }
+  });
+
+  it("puts the extremes at the extremes", () => {
+    expect(criticalityLevel(computeCriticalityScore(1, 1))).toBe(1);
+    expect(criticalityLevel(computeCriticalityScore(4, 4))).toBe(4);
+  });
+
+  it("rises with the underlying score", () => {
+    let previous = 0;
+    for (let score = MIN_CRITICALITY; score <= MAX_CRITICALITY; score += 1) {
+      const level = criticalityLevel(score);
+      expect(level).toBeGreaterThanOrEqual(previous);
+      previous = level;
+    }
   });
 });

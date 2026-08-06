@@ -4,6 +4,7 @@ import { SMEAT_DIMENSIONS, findSubdimension } from "@/lib/smeat/model";
 import {
   formatRelative,
   criticalityBand,
+  criticalityLevel,
   criticalityTone,
   readinessScore,
   readinessTone,
@@ -196,7 +197,7 @@ export default async function OverviewPage() {
                   <span className="pill ghost">No data</span>
                 ) : (
                   <span className={pillClass(criticalityTone(average))}>
-                    {average.toFixed(1)} {criticalityBand(average)}
+                    {criticalityLevel(average)} {criticalityBand(average)}
                   </span>
                 )}
               </div>
@@ -230,8 +231,8 @@ export default async function OverviewPage() {
                           {subdimension?.label ?? gap.subdimension_key}
                         </div>
                         <div className="hint">
-                          {company ?? "Unknown company"} · Opportunity{" "}
-                          {Number(gap.criticality_score).toFixed(0)}
+                          {company ?? "Unknown company"} · Criticality{" "}
+                          {criticalityLevel(Number(gap.criticality_score))} of 4
                         </div>
                       </div>
                     </div>

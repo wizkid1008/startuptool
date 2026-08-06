@@ -5,6 +5,7 @@ import { priorityBand, priorityTone } from "@/lib/smeat/effort";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import {
   criticalityBand,
+  criticalityLevel,
   criticalityTone,
   impactLabel,
   impactTone,
@@ -153,7 +154,7 @@ export function SegmentExplorer({
             >
               <span className="heat-label">{d.label}</span>
               <span className="heat-value">
-                {rollup.criticality === null ? "—" : rollup.criticality}
+                {rollup.criticality === null ? "—" : criticalityLevel(rollup.criticality)}
               </span>
               <span className="heat-sub">
                 {rollup.maturity === null
@@ -219,7 +220,12 @@ export function SegmentExplorer({
                     </span>
                   </span>
                   <span className="row" style={{ gap: 5 }}>
-                    <span className={pillClass(criticalityTone(criticality))}>{criticality}</span>
+                    <span
+                      className={pillClass(criticalityTone(criticality))}
+                      title={`${criticality} of 16 · maturity × impact`}
+                    >
+                      {criticalityLevel(criticality)} {criticalityBand(criticality)}
+                    </span>
                     {score.priority_score === null || score.priority_score === undefined ? null : (
                       <span className={`pill ${priorityTone(Number(score.priority_score))}`}>
                         {priorityBand(Number(score.priority_score))}
