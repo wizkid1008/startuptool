@@ -126,13 +126,22 @@ export function SegmentExplorer({
     ]);
   }
 
+  // Re-scoring deletes and recreates every score row, and the foreign key
+  // nulls assessment_score_id when it goes. Keying only on that id made every
+  // action vanish from the page after a re-run, even though the rows survived.
+  // The subdimension keys are stored for exactly this reason.
   const actionsByScore = new Map<string, ActionRow[]>();
+  const actionsBySubdimension = new Map<string, ActionRow[]>();
   for (const action of actions) {
-    if (!action.assessment_score_id) continue;
-    actionsByScore.set(action.assessment_score_id, [
-      ...(actionsByScore.get(action.assessment_score_id) ?? []),
-      action
-    ]);
+    if (action.assessment_score_id) {
+      actionsByScore.set(action.assessment_score_id, [
+        ...(actionsByScore.get(action.assessment_score_id) ?? []),
+        action
+      ]);
+    } else if (action.dimension_key && action.subdimension_key) {
+      const key = `${action.dimension_key}:${action.subdimension_key}`;
+      actionsBySubdimension.set(key, [...(actionsBySubdimension.get(key) ?? []), action]);
+    }
   }
 
   const dimension = SMEAT_DIMENSIONS.find((d) => d.key === selected) ?? null;
@@ -191,7 +200,11 @@ export function SegmentExplorer({
                 computeCriticalityScore(score.maturity_score, score.impact_score)
             );
             const scoreEvidence = evidenceByScore.get(score.id) ?? [];
-            const scoreActions = actionsByScore.get(score.id) ?? [];
+            const scoreActions = [
+              ...(actionsByScore.get(score.id) ?? []),
+              // Orphaned by a re-score, re-attached by subdimension.
+              ...(actionsBySubdimension.get(`${dimension.key}:${subdimension.key}`) ?? [])
+            ];
 
             return (
               <details key={subdimension.key}>
