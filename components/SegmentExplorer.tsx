@@ -222,7 +222,7 @@ export function SegmentExplorer({
                     <span className={pillClass(criticalityTone(criticality))}>{criticality}</span>
                     {score.priority_score === null || score.priority_score === undefined ? null : (
                       <span className={`pill ${priorityTone(Number(score.priority_score))}`}>
-                        P{Number(score.priority_score)}
+                        {priorityBand(Number(score.priority_score))}
                       </span>
                     )}
                   </span>

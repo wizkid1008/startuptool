@@ -138,7 +138,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
       <section className="section">
         <div className="card-head">
           <h2>Priority</h2>
-          <span className="microlabel">Criticality × (5 − effort) · 1–64</span>
+          <span className="microlabel">Criticality × (5 − effort)</span>
         </div>
         <PriorityBoard scores={rows} />
       </section>

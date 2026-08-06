@@ -142,7 +142,7 @@ export function PriorityBoard({ scores }: { scores: Row[] }) {
                     <td className="nowrap">
                       {estimatedRow ? (
                         <span className={`pill ${priorityTone(priority)}`}>
-                          {priority} {priorityBand(priority)}
+                          {priorityBand(priority)}
                         </span>
                       ) : (
                         <span className="pill ghost">Set effort</span>
