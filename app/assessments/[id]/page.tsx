@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
 import { ScoreMatrix } from "@/components/ScoreMatrix";
+import { SegmentHeatMap } from "@/components/SegmentHeatMap";
 import { findSubdimension } from "@/lib/smeat/model";
+import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
 import {
   assessmentStatusTone,
   formatRelative,
@@ -22,20 +25,29 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createSessionClient();
 
-  const [{ data: assessment }, { data: scores }, { data: evidence }] = await Promise.all([
-    supabase.from("assessments").select("*").eq("id", id).single(),
-    supabase
-      .from("assessment_scores")
-      .select("*")
-      .eq("assessment_id", id)
-      .order("criticality_score", { ascending: false }),
-    supabase
-      .from("assessment_evidence")
-      .select("*")
-      .eq("assessment_id", id)
-      .order("created_at", { ascending: false })
-      .limit(12)
-  ]);
+  const [{ data: assessment }, { data: scores }, { data: evidence }, { data: latestRun }] =
+    await Promise.all([
+      supabase.from("assessments").select("*").eq("id", id).single(),
+      supabase
+        .from("assessment_scores")
+        .select("*")
+        .eq("assessment_id", id)
+        .order("criticality_score", { ascending: false }),
+      supabase
+        .from("assessment_evidence")
+        .select("*")
+        .eq("assessment_id", id)
+        .order("created_at", { ascending: false })
+        .limit(12),
+      supabase
+        .from("agent_runs")
+        .select("id,status,error,created_at,completed_at")
+        .eq("assessment_id", id)
+        .eq("run_type", "scoring")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    ]);
 
   if (!assessment) {
     notFound();
@@ -48,6 +60,15 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
     .single();
 
   const rows = scores ?? [];
+  const hasScores = rows.length > 0;
+
+  // A run left "running" well past its expected duration died with the
+  // process. Distinguish that from one genuinely still working, so the page
+  // offers a retry instead of spinning forever.
+  const stalled = latestRun?.status === "running" && isStaleRun(latestRun.created_at);
+  const isRunning = assessment.status === "researching" && !stalled;
+  const isStalled = assessment.status === "researching" && Boolean(stalled);
+
   const averageCriticality =
     rows.length > 0
       ? rows.reduce((total, score) => total + Number(score.criticality_score), 0) / rows.length
@@ -67,14 +88,17 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         title={company?.name ?? "Assessment"}
         actions={
           <>
-            <ActionForm
-              action="/api/agent/score"
-              label="Run agent score"
-              pendingLabel="Scoring…"
-              hint="This can take several minutes."
-            >
-              <input type="hidden" name="assessment_id" value={assessment.id} />
-            </ActionForm>
+            {isRunning ? (
+              <span className="pill info">Scoring in progress</span>
+            ) : (
+              <ActionForm
+                action="/api/agent/score"
+                label={hasScores ? "Re-run agent score" : "Run agent score"}
+                pendingLabel="Starting…"
+              >
+                <input type="hidden" name="assessment_id" value={assessment.id} />
+              </ActionForm>
+            )}
             <form method="post" action="/api/excel/export">
               <input type="hidden" name="assessment_id" value={assessment.id} />
               <button className="secondary" type="submit">
@@ -100,14 +124,50 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         ) : null}
       </div>
 
+      {isRunning ? (
+        <div className="notice" style={{ marginBottom: 20 }}>
+          <strong>Scoring in progress.</strong>
+          <span className="small">
+            The agent is scoring all 30 subdimensions. This usually takes two to four minutes —
+            you can leave this page and come back.{" "}
+            <AutoRefresh startedAt={latestRun?.created_at} />
+          </span>
+        </div>
+      ) : null}
+
+      {isStalled ? (
+        <div className="notice warn" style={{ marginBottom: 20 }}>
+          <strong>That run appears to have stopped.</strong>
+          <span className="small">
+            It has been marked as running for over {STALE_RUN_MINUTES} minutes, which usually
+            means the server restarted mid-run. Start a new run to try again.
+          </span>
+          <form method="post" action="/api/agent/score" style={{ marginTop: 8 }}>
+            <input type="hidden" name="assessment_id" value={assessment.id} />
+            <button className="secondary small" type="submit">
+              Start a new run
+            </button>
+          </form>
+        </div>
+      ) : null}
+
       {assessment.status === "failed" ? (
         <div className="notice bad" style={{ marginBottom: 20 }}>
           <strong>The last scoring run failed.</strong>
+          {latestRun?.error ? <span className="small">{latestRun.error}</span> : null}
           <span className="small">
             Any previous scores were cleared before the run. Re-run the agent to rebuild them.
           </span>
         </div>
       ) : null}
+
+      <section style={{ marginBottom: 20 }}>
+        <div className="card-head">
+          <h2>Segments</h2>
+          <span className="microlabel">Criticality · 1–16</span>
+        </div>
+        <SegmentHeatMap scores={rows} />
+      </section>
 
       <div className="grid four">
         <div className="stat">
