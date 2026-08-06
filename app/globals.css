@@ -1207,3 +1207,67 @@ details[open] summary {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Compact heat map that doubles as segment navigation. Thirty expandable rows
+   at once is unscannable; picking a segment narrows it to five or fewer. */
+.heatmap.compact {
+  gap: 8px;
+}
+
+.heatmap.compact .heat {
+  padding: 10px 12px 9px;
+  gap: 2px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.heatmap.compact .heat-value {
+  font-size: 22px;
+}
+
+.heatmap.compact .heat-label {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+}
+
+.heatmap.compact .heat-sub {
+  font-size: 10px;
+}
+
+.heatmap.compact .heat:hover {
+  transform: translateY(-1px);
+}
+
+.heatmap.compact .heat.active {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+/* Tighter review panels — the rubric text is dense enough on its own. */
+.expand {
+  padding: 14px 12px 18px;
+}
+
+.lvl {
+  padding: 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.lvl:has(input:checked) {
+  padding: 9px;
+}
+
+.lvl li {
+  margin-bottom: 4px;
+}
+
+summary {
+  padding: 9px 12px;
+}
+
+.qblock {
+  padding: 12px 0;
+}

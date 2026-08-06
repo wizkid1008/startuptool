@@ -26,7 +26,11 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
   const { id } = await params;
   const supabase = await createSessionClient();
 
-  const [{ data: assessment }, { data: answers }, { data: latestRun }] = await Promise.all([
+  const [
+    { data: assessment },
+    { data: answers, error: answersError },
+    { data: latestRun }
+  ] = await Promise.all([
     supabase.from("assessments").select("id,company_id,status").eq("id", id).single(),
     supabase
       .from("assessment_answers")
@@ -87,6 +91,20 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
           </>
         }
       />
+
+      {/* Without this the page renders zeros and the run fails in the
+          background, which looks exactly like nothing happening. */}
+      {answersError ? (
+        <div className="notice bad" style={{ marginBottom: 20 }}>
+          <strong>Discovery is not set up yet.</strong>
+          <span className="small">{answersError.message}</span>
+          <span className="small">
+            This almost always means migration{" "}
+            <code>0005_assessment_answers.sql</code> has not been run. Apply it in the Supabase
+            SQL Editor, then reload. Running discovery before that will fail silently.
+          </span>
+        </div>
+      ) : null}
 
       {isRunning ? (
         <div className="notice" style={{ marginBottom: 20 }}>

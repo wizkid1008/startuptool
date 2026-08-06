@@ -5,9 +5,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
 import { MovementSince } from "@/components/MovementSince";
 import { PriorityBoard } from "@/components/PriorityBoard";
-import { ScoreReview } from "@/components/ScoreReview";
-import { SegmentHeatMap } from "@/components/SegmentHeatMap";
-import { findSubdimension } from "@/lib/smeat/model";
+import { SegmentExplorer } from "@/components/SegmentExplorer";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
 import {
   assessmentStatusTone,
@@ -109,9 +107,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const readiness = readinessScore(averageCriticality);
   const tone = readinessTone(readiness);
 
-  // The query already ranks by criticality — surface it instead of discarding it.
-  const topCriticality = rows.slice(0, 8);
-
   return (
     <>
       <PageHead
@@ -193,14 +188,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           </span>
         </div>
       ) : null}
-
-      <section style={{ marginBottom: 20 }}>
-        <div className="card-head">
-          <h2>Segments</h2>
-          <span className="microlabel">Criticality · 1–16</span>
-        </div>
-        <SegmentHeatMap scores={rows} />
-      </section>
 
       <div className="grid four">
         <div className="stat">
@@ -288,86 +275,17 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         </section>
       ) : null}
 
-      <section className="section grid split">
-        <article className="card">
-          <div className="card-head">
-            <h2>Top criticality</h2>
-            <span className="microlabel">Ranked 1–16</span>
-          </div>
-          <div className="card-body">
-            {topCriticality.length === 0 ? (
-              <p className="muted small">No scores yet. Run the agent to populate this view.</p>
-            ) : (
-              <div>
-                {topCriticality.map((score) => {
-                  const subdimension = findSubdimension(
-                    score.dimension_key,
-                    score.subdimension_key
-                  );
-                  const value = Number(score.criticality_score);
-
-                  return (
-                    <div className="between" key={score.id} style={{ padding: "9px 0" }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontWeight: 600 }}>
-                          {subdimension?.label ?? score.subdimension_key}
-                        </div>
-                        <div className="hint">{score.dimension_key}</div>
-                      </div>
-                      <span className={pillClass(criticalityTone(value))}>
-                        {value.toFixed(0)} {criticalityBand(value)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </article>
-
-        <article className="card">
-          <div className="card-head">
-            <h2>Recent evidence</h2>
-          </div>
-          <div className="card-body">
-            {(evidence ?? []).length === 0 ? (
-              <p className="muted small">No evidence stored yet.</p>
-            ) : (
-              (evidence ?? []).map((item) => {
-                const url = safeExternalUrl(item.url);
-
-                return (
-                  <div key={item.id} className="stack tight">
-                    <div className="row">
-                      <span className="pill ghost">{item.evidence_type}</span>
-                      <strong className="small">{item.title ?? "Untitled source"}</strong>
-                    </div>
-                    {url ? (
-                      <a
-                        className="small muted"
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {displayUrl(url)}
-                      </a>
-                    ) : null}
-                    {item.excerpt ? <p className="small muted">{item.excerpt}</p> : null}
-                    <hr className="rule" />
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </article>
-      </section>
-
       <section className="section">
         <div className="card-head">
-          <h2>Score matrix</h2>
-          <span className="microlabel">Click a row to edit</span>
+          <h2>Segments</h2>
+          <span className="microlabel">Select a segment · criticality 1–16</span>
         </div>
-        <ScoreReview assessmentId={assessment.id} scores={rows} actions={actions ?? []} />
+        <SegmentExplorer
+          assessmentId={assessment.id}
+          scores={rows}
+          evidence={evidence ?? []}
+          actions={actions ?? []}
+        />
       </section>
     </>
   );
