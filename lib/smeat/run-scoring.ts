@@ -65,7 +65,7 @@ export async function runScoring(assessmentId: string, runId: string | null) {
     // agent is scoring 30 subdimensions from a profile and some file contents.
     const { data: answers } = await supabase
       .from("assessment_answers")
-      .select("dimension_key,subdimension_key,question_id,answer,status")
+      .select("dimension_key,subdimension_key,question_id,answer,selected_level,status")
       .eq("assessment_id", assessmentId);
 
     const client = new Anthropic({ apiKey: requireEnv("ANTHROPIC_API_KEY") });

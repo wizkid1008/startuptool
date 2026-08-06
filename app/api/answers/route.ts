@@ -8,6 +8,11 @@ const schema = z.object({
   subdimension_key: z.string().trim().min(1).max(64),
   question_id: z.string().trim().min(1).max(200),
   answer: z.string().trim().max(4000).optional(),
+  // No radio chosen arrives as absent; an explicit "" clears it.
+  selected_level: z
+    .union([z.literal(""), z.coerce.number().int().min(1).max(4)])
+    .optional()
+    .transform((value) => (value === "" || value === undefined ? null : value)),
   status: z.enum(["answered", "needs_input", "not_applicable"])
 });
 
@@ -35,7 +40,13 @@ export async function POST(request: Request) {
       subdimension_key: parsed.data.subdimension_key,
       question_id: parsed.data.question_id,
       answer: parsed.data.answer || null,
-      status: parsed.data.answer ? "answered" : parsed.data.status,
+      selected_level: parsed.data.selected_level,
+      // Either a chosen level or written detail counts as answered — a level
+      // on its own is a complete answer to most of these.
+      status:
+        parsed.data.answer || parsed.data.selected_level !== null
+          ? "answered"
+          : parsed.data.status,
       source: "manual",
       confidence: null,
       evidence: null

@@ -16,6 +16,7 @@ export function buildScoringPrompt(
     subdimension_key: string;
     question_id: string;
     answer: string | null;
+    selected_level?: number | null;
     status: string;
   }> = []
 ) {
@@ -43,17 +44,25 @@ ${JSON.stringify(
   2
 )}
 
-Discovery answers:
+Discovery answers. Where reviewer_selected_level is present, a person has
+judged the maturity level directly — treat that as the strongest evidence
+available and let it drive maturity_score for that subdimension:
 ${
   answers.length === 0
     ? "None gathered. Score from the profile and documents alone, and keep confidence low."
     : JSON.stringify(
         answers
-          .filter((answer) => answer.status === "answered" && answer.answer)
+          .filter(
+            (answer) =>
+              answer.status === "answered" && (answer.answer || answer.selected_level)
+          )
           .map((answer) => ({
             subdimension: `${answer.dimension_key}/${answer.subdimension_key}`,
             question_id: answer.question_id,
-            answer: answer.answer
+            answer: answer.answer,
+            // A level a reviewer picked is a direct judgment about maturity —
+            // stronger evidence than prose, and it should move the score.
+            reviewer_selected_level: answer.selected_level ?? undefined
           })),
         null,
         2

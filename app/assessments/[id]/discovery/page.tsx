@@ -34,7 +34,7 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
     supabase.from("assessments").select("id,company_id,status").eq("id", id).single(),
     supabase
       .from("assessment_answers")
-      .select("question_id,answer,status,source,confidence,evidence")
+      .select("question_id,answer,selected_level,suggested_level,status,source,confidence,evidence")
       .eq("assessment_id", id),
     supabase
       .from("agent_runs")
@@ -220,15 +220,6 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
                             </span>
                           </div>
 
-                          <div className="cues">
-                            {[1, 2, 3, 4].map((level) => (
-                              <span key={level}>
-                                <b>{level}</b>{" "}
-                                {question.listenFor[level as 1 | 2 | 3 | 4]}
-                              </span>
-                            ))}
-                          </div>
-
                           {answer?.evidence ? (
                             <p className="hint">
                               <b>{answer.source === "ai" ? "Agent" : "You"}:</b> {answer.evidence}
@@ -248,11 +239,37 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
                             />
                             <input type="hidden" name="question_id" value={question.id} />
                             <input type="hidden" name="status" value="needs_input" />
+
+                            {/* The cues double as the answer. Most answers are
+                                really "they're a 3" — making that selectable
+                                keeps the structure that prose would lose. */}
+                            <div className="cuepick">
+                              {[1, 2, 3, 4].map((level) => (
+                                <label key={level}>
+                                  <input
+                                    type="radio"
+                                    name="selected_level"
+                                    value={level}
+                                    defaultChecked={answer?.selected_level === level}
+                                  />
+                                  <span className="lvlnum">{level}</span>
+                                  <span>
+                                    {question.listenFor[level as 1 | 2 | 3 | 4]}
+                                    {answer?.suggested_level === level ? (
+                                      <span className="pill ghost" style={{ marginLeft: 6 }}>
+                                        Agent&rsquo;s read
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+
                             <textarea
                               name="answer"
                               defaultValue={answer?.answer ?? ""}
-                              placeholder="Answer, or leave blank to keep it flagged"
-                              style={{ minHeight: 64 }}
+                              placeholder="Add detail, or leave blank — selecting a level above is enough"
+                              style={{ minHeight: 56 }}
                             />
                             <button className="secondary small" type="submit">
                               Save answer

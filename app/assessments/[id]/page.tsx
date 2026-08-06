@@ -43,8 +43,7 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         .from("assessment_evidence")
         .select("*")
         .eq("assessment_id", id)
-        .order("created_at", { ascending: false })
-        .limit(12),
+        .order("created_at", { ascending: false }),
       supabase
         .from("assessment_actions")
         .select("id,assessment_score_id,dimension_key,subdimension_key,title,owner,due_date,status")
@@ -189,67 +188,82 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         </div>
       ) : null}
 
-      <div className="grid four">
-        <div className="stat">
-          <div className="microlabel">Readiness</div>
-          <div className="num">
-            {readiness === null ? (
-              <span className="muted">—</span>
-            ) : (
-              <>
-                {readiness}
-                <span className="num-unit"> /100</span>
-              </>
-            )}
+      {/* Headline numbers on the left, the narrative beside them rather than
+          stacked below — they are read together. */}
+      <div className="grid summaryrow">
+        <div className="stack">
+          <div className="stat">
+            <div className="microlabel">Readiness</div>
+            <div className="num">
+              {readiness === null ? (
+                <span className="muted">—</span>
+              ) : (
+                <>
+                  {readiness}
+                  <span className="num-unit"> /100</span>
+                </>
+              )}
+            </div>
+            <div className={`meter ${tone}`}>
+              <span style={{ width: `${readiness ?? 0}%` }} />
+            </div>
+            <div className="stat-note">{rows.length} of 30 subdimensions scored</div>
           </div>
-          <div className={`meter ${tone}`}>
-            <span style={{ width: `${readiness ?? 0}%` }} />
+
+          <div className="stat">
+            <div className="microlabel">Average criticality</div>
+            <div className="num">
+              {averageCriticality === null ? (
+                <span className="muted">—</span>
+              ) : (
+                averageCriticality.toFixed(1)
+              )}
+            </div>
+            <div>
+              {averageCriticality === null ? (
+                <span className="pill ghost">Not scored</span>
+              ) : (
+                <span className={pillClass(criticalityTone(averageCriticality))}>
+                  {criticalityBand(averageCriticality)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="stat">
-          <div className="microlabel">Average criticality</div>
-          <div className="num">
-            {averageCriticality === null ? (
-              <span className="muted">—</span>
-            ) : (
-              averageCriticality.toFixed(1)
-            )}
-          </div>
-          <div>
-            {averageCriticality === null ? (
-              <span className="pill ghost">Not scored</span>
-            ) : (
-              <span className={pillClass(criticalityTone(averageCriticality))}>
-                {criticalityBand(averageCriticality)}
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div className="stat">
-          <div className="microlabel">Subdimensions scored</div>
-          <div className="num">{rows.length}</div>
-          <div className="stat-note">of 30 canonical</div>
-        </div>
-
-        <div className="stat">
-          <div className="microlabel">Evidence items</div>
-          <div className="num">{evidence?.length ?? 0}</div>
-          <div className="stat-note">Most recent 12 shown</div>
-        </div>
-      </div>
-
-      {assessment.executive_summary ? (
-        <section className="section">
+        {assessment.executive_summary ? (
           <article className="card">
             <div className="card-head">
               <h2>Executive summary</h2>
             </div>
             <p className="lede">{assessment.executive_summary}</p>
           </article>
-        </section>
-      ) : null}
+        ) : (
+          <article className="card">
+            <div className="card-head">
+              <h2>Executive summary</h2>
+            </div>
+            <p className="muted small">
+              Written by the agent when scoring completes.
+            </p>
+          </article>
+        )}
+      </div>
+
+      {/* Segments first: the reviewer's entry point into the detail. Priority
+          is a derived read of the same data and belongs after it. */}
+      <section className="section">
+        <div className="card-head">
+          <h2>Segments</h2>
+          <span className="microlabel">Select a segment · criticality 1–16</span>
+        </div>
+        <SegmentExplorer
+          assessmentId={assessment.id}
+          scores={rows}
+          evidence={evidence ?? []}
+          actions={actions ?? []}
+        />
+      </section>
 
       <section className="section">
         <div className="card-head">
@@ -275,18 +289,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         </section>
       ) : null}
 
-      <section className="section">
-        <div className="card-head">
-          <h2>Segments</h2>
-          <span className="microlabel">Select a segment · criticality 1–16</span>
-        </div>
-        <SegmentExplorer
-          assessmentId={assessment.id}
-          scores={rows}
-          evidence={evidence ?? []}
-          actions={actions ?? []}
-        />
-      </section>
     </>
   );
 }

@@ -20,7 +20,8 @@ const answerSchema = z.object({
   status: z.enum(["answered", "needs_input", "not_applicable"]),
   answer: z.string().optional(),
   evidence: z.string().optional(),
-  confidence: z.number().min(0).max(1).optional()
+  confidence: z.number().min(0).max(1).optional(),
+  suggested_level: z.number().int().min(1).max(4).optional()
 });
 
 const responseSchema = z.object({
@@ -91,6 +92,11 @@ needs_input, not answered.
 
 "confidence" is 0 to 1 and reflects how well the evidence supports the answer.
 
+"suggested_level" is 1 to 4 and is your read of which level the evidence points
+to, using "answer_at_each_level". Include it only when status is "answered" —
+it is shown to a reviewer as your read, next to their own choice, and must not
+appear where you have no basis for it.
+
 Rules:
 - Never invent facts, figures, or document contents.
 - Do not infer from the industry or company stage what a company probably does.
@@ -105,7 +111,8 @@ Return only valid JSON:
       "status": "answered",
       "answer": "concise statement of what is true",
       "evidence": "what supports it, and from where",
-      "confidence": 0.7
+      "confidence": 0.7,
+      "suggested_level": 3
     }
   ]
 }`;
@@ -180,7 +187,8 @@ export async function runDiscovery(assessmentId: string, runId: string | null) {
           status: answer.status,
           source: "ai",
           confidence: answer.confidence ?? null,
-          evidence: answer.evidence ?? null
+          evidence: answer.evidence ?? null,
+          suggested_level: answer.suggested_level ?? null
         };
       });
 

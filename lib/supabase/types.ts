@@ -131,6 +131,10 @@ export type Database = {
           subdimension_key: string;
           question_id: string;
           answer: string | null;
+          /** The level a person chose. Never overwritten by a discovery run. */
+          selected_level: number | null;
+          /** The agent's suggestion, kept separate from the human's choice. */
+          suggested_level: number | null;
           status: string;
           source: string;
           confidence: number | null;
