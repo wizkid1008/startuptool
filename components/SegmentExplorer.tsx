@@ -55,6 +55,9 @@ type EvidenceRow = {
 type ActionRow = {
   id: string;
   assessment_score_id: string | null;
+  // Kept so an action survives a re-score, which nulls assessment_score_id.
+  dimension_key: string | null;
+  subdimension_key: string | null;
   title: string;
   owner: string | null;
   due_date: string | null;
