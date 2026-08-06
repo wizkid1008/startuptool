@@ -44,23 +44,23 @@ export function Gantt({ rows }: { rows: GanttRow[] }) {
   const ticks = monthTicks(window);
   const totalDays = ticks.reduce((sum, tick) => sum + tick.days, 0) || 1;
 
-  const groups = SMEAT_DIMENSIONS.map((dimension) => ({
-    key: dimension.key,
+  // Typed explicitly: dimension.key is a literal union, so an "unassigned"
+  // group keyed with anything else cannot be concatenated onto the inferred
+  // array.
+  type Group = { key: string; label: string; items: GanttRow[] };
+
+  const groups: Group[] = SMEAT_DIMENSIONS.map((dimension) => ({
+    key: dimension.key as string,
     label: dimension.label,
     items: rows.filter((row) => row.dimensionKey === dimension.key)
-  }))
-    .filter((group) => group.items.length > 0)
-    .concat(
-      rows.some((row) => !row.dimensionKey)
-        ? [
-            {
-              key: "__none__",
-              label: "Unassigned",
-              items: rows.filter((row) => !row.dimensionKey)
-            }
-          ]
-        : []
-    );
+  })).filter((group) => group.items.length > 0);
+
+  // Re-scoring nulls the keys on an action, so an orphan is normal rather
+  // than a bug, and dropping it from the chart would hide real work.
+  const orphans = rows.filter((row) => !row.dimensionKey);
+  if (orphans.length > 0) {
+    groups.push({ key: "__none__", label: "Unassigned", items: orphans });
+  }
 
   return (
     <div className="gantt">
