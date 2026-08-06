@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { Gantt } from "@/components/Gantt";
 import { PageHead } from "@/components/PageHead";
 import { ProposalList } from "@/components/ProposalList";
+import { ScheduleRow } from "@/components/ScheduleRow";
 import { Stepper } from "@/components/Stepper";
 import { ACTION_CRITICALITY_FLOOR } from "@/lib/smeat/actions";
 import { findSubdimension, SMEAT_DIMENSIONS } from "@/lib/smeat/model";
@@ -92,6 +94,24 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     proposalRun?.status === "running" && !isStaleRun(proposalRun.created_at);
 
   const estimated = rows.filter((row) => row.effort_score !== null).length;
+
+  const scheduled = list
+    .filter((action) => action.start_date && action.end_date)
+    .map((action) => ({
+      id: action.id,
+      title: action.title,
+      owner: action.owner,
+      status: action.status,
+      dimensionKey: action.dimension_key,
+      subdimensionLabel:
+        (action.dimension_key && action.subdimension_key
+          ? findSubdimension(action.dimension_key, action.subdimension_key)?.label
+          : null) ??
+        action.subdimension_key ??
+        "—",
+      start: action.start_date!,
+      end: action.end_date!
+    }));
 
   const stages = computeStages({
     assessmentId: assessment.id,
@@ -216,6 +236,37 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         </section>
       ) : null}
 
+      {list.length > 0 ? (
+        <section className="section">
+          <div className="card-head">
+            <h2>Schedule</h2>
+            <span className="row" style={{ gap: 10 }}>
+              <span className="microlabel">
+                {scheduled.length === 0
+                  ? "Not scheduled"
+                  : `${scheduled.length} of ${list.length} dated`}
+              </span>
+              <form method="post" action="/api/actions/schedule">
+                <input type="hidden" name="intent" value="propose" />
+                <input type="hidden" name="assessment_id" value={assessment.id} />
+                <button className="secondary small" type="submit">
+                  {scheduled.length === 0 ? "Propose schedule" : "Re-propose"}
+                </button>
+              </form>
+            </span>
+          </div>
+
+          <p className="hint" style={{ marginBottom: 12 }}>
+            Bar length comes from the effort estimate, which is already a duration —
+            &ldquo;days to a few weeks&rdquo; through to &ldquo;six months or more&rdquo;. Order
+            comes from priority, and each owner&rsquo;s work runs end to end, because nobody does
+            two things at once. Adjust any date below and the chart redraws.
+          </p>
+
+          <Gantt rows={scheduled} />
+        </section>
+      ) : null}
+
       <section className="section">
         <div className="card-head">
           <h2>Actions</h2>
@@ -284,6 +335,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                           <th>Action</th>
                           <th>Subdimension</th>
                           <th>Owner</th>
+                          <th>Scheduled</th>
                           <th>Due</th>
                           <th>Status</th>
                           <th />
@@ -313,6 +365,13 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                                 {subdimension?.label ?? action.subdimension_key ?? "—"}
                               </td>
                               <td className="muted small">{action.owner ?? "—"}</td>
+                              <td className="nowrap">
+                                <ScheduleRow
+                                  actionId={action.id}
+                                  start={action.start_date}
+                                  end={action.end_date}
+                                />
+                              </td>
                               <td className="muted small nowrap">
                                 {action.due_date ? formatDate(action.due_date) : "—"}
                               </td>

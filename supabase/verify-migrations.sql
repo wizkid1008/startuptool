@@ -51,5 +51,15 @@ select
                and column_name in ('selected_level','suggested_level')) = 2
        then 'ok' else 'MISSING' end                                as m0007_answer_levels,
 
+  case when (select count(*) from cols
+             where table_name='assessment_actions'
+               and column_name in ('source','rationale','accepted_at')) = 3
+       then 'ok' else 'MISSING' end                                as m0008_action_provenance,
+
+  case when (select count(*) from cols
+             where table_name='assessment_actions'
+               and column_name in ('start_date','end_date')) = 2
+       then 'ok' else 'MISSING' end                                as m0009_action_schedule,
+
   (select count(*) from pol where schemaname in ('public','storage'))::text
                                                                    as policy_count;

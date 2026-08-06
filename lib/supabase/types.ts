@@ -168,6 +168,9 @@ export type Database = {
           rationale: string | null;
           /** Null until a person accepts the proposal. */
           accepted_at: string | null;
+          /** Schedule, for the Gantt. due_date is a commitment; these are a plan. */
+          start_date: string | null;
+          end_date: string | null;
           created_at: string;
           updated_at: string;
         };

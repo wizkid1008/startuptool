@@ -129,8 +129,11 @@ export async function POST(request: Request) {
         subdimension_key: action.subdimension_key,
         title: action.title,
         owner: action.owner,
+        start_date: action.start_date,
+        end_date: action.end_date,
         due_date: action.due_date,
         status: action.status,
+        source: action.source,
         detail: action.detail
       }))
     ),

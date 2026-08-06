@@ -11,6 +11,15 @@ import { ALL_QUESTIONS, DISCOVERY_QUESTIONS } from "@/lib/smeat/questions";
 import { computePriorityScore, quadrantFor } from "@/lib/smeat/effort";
 import { computeStages } from "@/lib/smeat/stages";
 import {
+  addDays,
+  barPosition,
+  daysBetween,
+  durationDaysFor,
+  monthTicks,
+  proposeSchedule,
+  scheduleWindow
+} from "@/lib/smeat/schedule";
+import {
   computeCriticalityScore,
   impactScale,
   maturityScale,
@@ -319,5 +328,95 @@ describe("assessment stages", () => {
     const input = { scoreCount: 30 };
     expect(stageFor("prioritize", input).href).toBe("/assessments/a/prioritize");
     expect(stageFor("plan", input).href).toBe("/assessments/a/plan");
+  });
+});
+
+describe("schedule", () => {
+  it("reads bar length off the effort scale", () => {
+    // effortScale: 1 "days to a few weeks" ... 4 "six months or more".
+    expect(durationDaysFor(1)).toBeLessThan(durationDaysFor(2));
+    expect(durationDaysFor(2)).toBeLessThan(durationDaysFor(3));
+    expect(durationDaysFor(3)).toBeLessThan(durationDaysFor(4));
+    expect(durationDaysFor(4)).toBeGreaterThanOrEqual(180);
+  });
+
+  it("gives unestimated work the shortest bar rather than none", () => {
+    expect(durationDaysFor(null)).toBe(durationDaysFor(1));
+    expect(durationDaysFor(undefined)).toBe(durationDaysFor(1));
+  });
+
+  // A date parsed with the Date constructor and read back west of UTC comes
+  // out a day early, which would shift every bar.
+  it("does not drift across timezones", () => {
+    expect(addDays("2026-08-06", 0)).toBe("2026-08-06");
+    expect(addDays("2026-08-06", 1)).toBe("2026-08-07");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(daysBetween("2026-08-06", "2026-08-13")).toBe(7);
+  });
+
+  it("runs one owner's work end to end, never in parallel", () => {
+    const dates = proposeSchedule(
+      [
+        { id: "a", owner: "Kim", priority: 60, effort: 1 },
+        { id: "b", owner: "Kim", priority: 40, effort: 1 }
+      ],
+      "2026-08-06"
+    );
+
+    const first = dates.find((d) => d.id === "a")!;
+    const second = dates.find((d) => d.id === "b")!;
+    expect(second.start_date).toBe(first.end_date);
+  });
+
+  it("lets different owners work at the same time", () => {
+    const dates = proposeSchedule(
+      [
+        { id: "a", owner: "Kim", priority: 60, effort: 1 },
+        { id: "b", owner: "Sam", priority: 40, effort: 1 }
+      ],
+      "2026-08-06"
+    );
+
+    expect(dates.every((d) => d.start_date === "2026-08-06")).toBe(true);
+  });
+
+  it("schedules the highest priority first", () => {
+    const dates = proposeSchedule(
+      [
+        { id: "low", owner: null, priority: 8, effort: 1 },
+        { id: "high", owner: null, priority: 60, effort: 1 }
+      ],
+      "2026-08-06"
+    );
+
+    expect(dates[0].id).toBe("high");
+    expect(dates[1].start_date).toBe(dates[0].end_date);
+  });
+
+  it("is stable, so re-running does not reshuffle the plan", () => {
+    const items = [
+      { id: "b", owner: null, priority: 20, effort: 2 },
+      { id: "a", owner: null, priority: 20, effort: 2 }
+    ];
+
+    expect(proposeSchedule(items, "2026-08-06")).toEqual(
+      proposeSchedule([...items].reverse(), "2026-08-06")
+    );
+  });
+
+  it("pads the window to whole months and covers every bar", () => {
+    const window = scheduleWindow([{ start: "2026-08-06", end: "2026-09-20" }])!;
+    expect(window.start).toBe("2026-08-01");
+    expect(window.end).toBe("2026-09-30");
+
+    const ticks = monthTicks(window);
+    expect(ticks.map((tick) => tick.days)).toEqual([31, 30]);
+  });
+
+  it("keeps every bar inside the chart", () => {
+    const window = scheduleWindow([{ start: "2026-08-06", end: "2026-10-20" }])!;
+    const { left, width } = barPosition(window, { start: "2026-08-06", end: "2026-10-20" });
+    expect(left).toBeGreaterThanOrEqual(0);
+    expect(left + width).toBeLessThanOrEqual(100.5);
   });
 });
