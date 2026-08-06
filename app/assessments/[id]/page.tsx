@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
+import { MovementSince } from "@/components/MovementSince";
 import { PriorityBoard } from "@/components/PriorityBoard";
 import { ScoreReview } from "@/components/ScoreReview";
 import { SegmentHeatMap } from "@/components/SegmentHeatMap";
@@ -71,6 +72,25 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
     .select("id,name")
     .eq("id", assessment.company_id)
     .single();
+
+  // The schema has always supported multiple assessments per company; nothing
+  // has ever surfaced the movement between them.
+  const { data: priorAssessment } = await supabase
+    .from("assessments")
+    .select("id,updated_at")
+    .eq("company_id", assessment.company_id)
+    .neq("id", assessment.id)
+    .in("status", ["scored", "reviewed", "finalized"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: priorScores } = priorAssessment
+    ? await supabase
+        .from("assessment_scores")
+        .select("dimension_key,subdimension_key,maturity_score,criticality_score")
+        .eq("assessment_id", priorAssessment.id)
+    : { data: null };
 
   const rows = scores ?? [];
   const hasScores = rows.length > 0;
@@ -251,6 +271,22 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
         </div>
         <PriorityBoard scores={rows} />
       </section>
+
+      {priorAssessment && priorScores && priorScores.length > 0 && hasScores ? (
+        <section className="section">
+          <div className="card-head">
+            <h2>Change since last assessment</h2>
+            <span className="microlabel">Maturity movement</span>
+          </div>
+          <article className="card">
+            <MovementSince
+              current={rows}
+              previous={priorScores}
+              previousLabel={formatRelative(priorAssessment.updated_at)}
+            />
+          </article>
+        </section>
+      ) : null}
 
       <section className="section grid split">
         <article className="card">

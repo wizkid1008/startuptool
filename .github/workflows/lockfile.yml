@@ -1,0 +1,46 @@
+name: Generate lockfile
+
+# Manual only. There is no package-lock.json, so every CI run and every deploy
+# resolves dependencies afresh — a transitive release can change the build
+# without a commit. Node cannot be installed on the development machine, so
+# this generates the lockfile on a runner and commits it back.
+#
+# Run it once from the Actions tab, then CI can switch to `npm ci`.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # --package-lock-only resolves the tree and writes the lockfile without
+      # installing, which is all that is needed here.
+      - name: Resolve dependencies
+        run: npm install --package-lock-only --no-audit --no-fund
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "Lockfile already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Add package-lock.json so builds are reproducible
+
+Generated on a runner, since Node is not available on the development
+machine. Without it, CI and Render resolve dependencies fresh on every run and
+a transitive release can change the build with no commit behind it."
+          git push
