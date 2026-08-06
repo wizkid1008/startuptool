@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 const optionalUrl = z
   .string()
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
   const { data, error } = await supabase
     .from("companies")
     .insert({

@@ -5,12 +5,12 @@ import {
   formatRelative,
   pillClass
 } from "@/lib/smeat/presentation";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AssessmentsPage() {
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const [assessmentsResult, companiesResult] = await Promise.all([
     supabase

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { failurePage, seeOther } from "@/lib/http";
 import { findSubdimension } from "@/lib/smeat/model";
 import { computeCriticalityScore } from "@/lib/smeat/scoring";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_ROWS = 500;
@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
   const { data: assessment, error: assessmentError } = await supabase
     .from("assessments")
     .insert({ company_id: companyId, status: "reviewed" })

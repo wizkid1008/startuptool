@@ -13,14 +13,14 @@ import {
   readinessTone,
   pillClass
 } from "@/lib/smeat/presentation";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 import { displayUrl, safeExternalUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
 export default async function AssessmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const [{ data: assessment }, { data: scores }, { data: evidence }] = await Promise.all([
     supabase.from("assessments").select("*").eq("id", id).single(),

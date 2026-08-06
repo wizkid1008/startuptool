@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { PageHead } from "@/components/PageHead";
 import { formatRelative } from "@/lib/smeat/presentation";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompaniesPage() {
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
   const { data: companies, error } = await supabase
     .from("companies")
     .select("id,name,industry,stage,geography,status,created_at")

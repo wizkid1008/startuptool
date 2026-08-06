@@ -6,14 +6,14 @@ import {
   formatRelative,
   pillClass
 } from "@/lib/smeat/presentation";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 import { displayUrl, safeExternalUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const [{ data: company }, { data: assessments }, { data: documents }] = await Promise.all([
     supabase.from("companies").select("*").eq("id", id).single(),

@@ -9,7 +9,7 @@ import {
   readinessTone,
   pillClass
 } from "@/lib/smeat/presentation";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +22,7 @@ const RUN_LABEL: Record<string, string> = {
 };
 
 export default async function OverviewPage() {
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const [companiesResult, assessmentsResult, scoresResult, documentsResult, runsResult] =
     await Promise.all([

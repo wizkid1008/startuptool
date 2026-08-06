@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 const assessmentSchema = z.object({
   company_id: z.string().uuid("A valid company is required")
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
   const { data, error } = await supabase
     .from("assessments")
     .insert({ company_id: parsed.data.company_id, status: "draft" })

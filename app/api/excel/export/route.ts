@@ -3,7 +3,7 @@ import * as XLSX from "xlsx";
 import { z } from "zod";
 import { failurePage, formatIssues } from "@/lib/http";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 const requestSchema = z.object({
   assessment_id: z.string().uuid("A valid assessment is required")
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   const assessmentId = parsed.data.assessment_id;
   const back = `/assessments/${assessmentId}`;
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const [{ data: assessment, error: assessmentError }, { data: scores }, { data: evidence }] =
     await Promise.all([

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { PageHead } from "@/components/PageHead";
 
+export const dynamic = "force-dynamic";
+
 export default function NewCompanyPage() {
   return (
     <>

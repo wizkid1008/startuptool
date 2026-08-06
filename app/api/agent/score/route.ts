@@ -7,7 +7,7 @@ import {
   canonicalAgentScoreResponseSchema,
   computeCriticalityScore
 } from "@/lib/smeat/scoring";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 // Scoring 30 subdimensions is a long call. Without this the platform default
 // (as low as 10s) kills the request mid-flight.
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const assessmentId = parsedRequest.data.assessment_id;
   const back = `/assessments/${assessmentId}`;
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
 
   const { data: assessment, error: assessmentError } = await supabase
     .from("assessments")

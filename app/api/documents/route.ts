@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { failurePage, formatIssues, seeOther } from "@/lib/http";
-import { createServiceClient } from "@/lib/supabase/server";
+import { createSessionClient } from "@/lib/supabase/server";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const supabase = createServiceClient();
+  const supabase = await createSessionClient();
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const storagePath = `${companyId}/${Date.now()}-${safeName}`;
   const bytes = await file.arrayBuffer();
