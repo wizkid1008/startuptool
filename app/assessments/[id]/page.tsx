@@ -4,9 +4,10 @@ import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
 import { MovementSince } from "@/components/MovementSince";
-import { PriorityBoard } from "@/components/PriorityBoard";
+import { Stepper } from "@/components/Stepper";
 import { SegmentExplorer } from "@/components/SegmentExplorer";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
+import { computeStages } from "@/lib/smeat/stages";
 import {
   assessmentStatusTone,
   formatRelative,
@@ -66,9 +67,18 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id,name")
+    .select("id,name,description")
     .eq("id", assessment.company_id)
     .single();
+
+  // Feeds the stepper. Counts only — the detail lives on its own page.
+  const [{ data: answerStatuses }, { count: documentCount }] = await Promise.all([
+    supabase.from("assessment_answers").select("status").eq("assessment_id", id),
+    supabase
+      .from("company_documents")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", assessment.company_id)
+  ]);
 
   // The schema has always supported multiple assessments per company; nothing
   // has ever surfaced the movement between them.
@@ -106,6 +116,22 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
   const readiness = readinessScore(averageCriticality);
   const tone = readinessTone(readiness);
 
+  const editedCount = rows.filter((row) => row.source === "manual").length;
+
+  const stages = computeStages({
+    assessmentId: assessment.id,
+    companyId: assessment.company_id,
+    hasDescription: Boolean(company?.description),
+    documentCount: documentCount ?? 0,
+    answeredCount: (answerStatuses ?? []).filter((a) => a.status === "answered").length,
+    needsInputCount: (answerStatuses ?? []).filter((a) => a.status === "needs_input").length,
+    scoreCount: rows.length,
+    editedCount,
+    estimatedCount: rows.filter((row) => row.effort_score !== null).length,
+    actionCount: (actions ?? []).length,
+    status: assessment.status
+  });
+
   return (
     <>
       <PageHead
@@ -126,30 +152,21 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
                 <input type="hidden" name="assessment_id" value={assessment.id} />
               </ActionForm>
             )}
-            <Link className="btn secondary" href={`/assessments/${assessment.id}/discovery`}>
-              Discovery
+            <Link className="btn secondary" href={`/assessments/${assessment.id}/plan`}>
+              Plan
             </Link>
-            <form method="post" action="/api/excel/export">
-              <input type="hidden" name="assessment_id" value={assessment.id} />
-              <button className="secondary" type="submit">
-                Export Excel
-              </button>
-            </form>
           </>
         }
       />
 
-      <div className="row" style={{ marginTop: -12, marginBottom: 24 }}>
+      <div className="row" style={{ marginTop: -12, marginBottom: 20 }}>
         <span className={pillClass(assessmentStatusTone(assessment.status))}>
           {assessment.status}
         </span>
         <span className="hint">Updated {formatRelative(assessment.updated_at)}</span>
-        {company ? (
-          <Link className="btn quiet small" href={`/companies/${company.id}`}>
-            Back to company
-          </Link>
-        ) : null}
       </div>
+
+      <Stepper stages={stages} current="score" />
 
       {isRunning ? (
         <div className="notice" style={{ marginBottom: 20 }}>
@@ -175,6 +192,18 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
               Start a new run
             </button>
           </form>
+        </div>
+      ) : null}
+
+      {editedCount > 0 && !isRunning ? (
+        <div className="notice" style={{ marginBottom: 20 }}>
+          <strong>
+            {editedCount} subdimension{editedCount === 1 ? "" : "s"} edited by hand.
+          </strong>
+          <span className="small">
+            A re-run keeps those rows exactly as they are and re-scores the rest. To let the
+            agent score one again, that row has to be deleted first.
+          </span>
         </div>
       ) : null}
 
@@ -263,14 +292,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ id:
           evidence={evidence ?? []}
           actions={actions ?? []}
         />
-      </section>
-
-      <section className="section">
-        <div className="card-head">
-          <h2>Priority</h2>
-          <span className="microlabel">Criticality x (5 - effort) · 1-64</span>
-        </div>
-        <PriorityBoard scores={rows} />
       </section>
 
       {priorAssessment && priorScores && priorScores.length > 0 && hasScores ? (

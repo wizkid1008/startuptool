@@ -107,20 +107,51 @@ export async function runScoring(assessmentId: string, runId: string | null) {
       rationale: score.rationale
     }));
 
+    // A person's judgment outranks a re-run. Rows they edited are kept as they
+    // are — previously every manual maturity, impact, effort and reviewer note
+    // was deleted before the new scores were written, with no warning first.
+    const { data: edited } = await supabase
+      .from("assessment_scores")
+      .select("dimension_key,subdimension_key")
+      .eq("assessment_id", assessmentId)
+      .eq("source", "manual");
+
+    const preserved = new Set(
+      (edited ?? []).map((row) => `${row.dimension_key}:${row.subdimension_key}`)
+    );
+
+    const writableRows = scoreRows.filter(
+      (row) => !preserved.has(`${row.dimension_key}:${row.subdimension_key}`)
+    );
+
     await supabase.from("assessment_evidence").delete().eq("assessment_id", assessmentId);
-    await supabase.from("assessment_scores").delete().eq("assessment_id", assessmentId);
+    await supabase
+      .from("assessment_scores")
+      .delete()
+      .eq("assessment_id", assessmentId)
+      .neq("source", "manual");
 
     const { data: insertedScores, error: scoresError } = await supabase
       .from("assessment_scores")
-      .insert(scoreRows)
+      .insert(writableRows)
       .select("id,dimension_key,subdimension_key");
 
-    if (scoresError || !insertedScores) {
-      throw new Error(scoresError?.message ?? "Scores could not be saved");
+    if (scoresError) {
+      throw new Error(scoresError.message);
     }
 
+    // Evidence has to attach to preserved rows too, so look up every current
+    // row rather than only the ones just inserted.
+    const { data: allScores } = await supabase
+      .from("assessment_scores")
+      .select("id,dimension_key,subdimension_key")
+      .eq("assessment_id", assessmentId);
+
     const scoreIdByKey = new Map(
-      insertedScores.map((score) => [`${score.dimension_key}:${score.subdimension_key}`, score.id])
+      (allScores ?? insertedScores ?? []).map((score) => [
+        `${score.dimension_key}:${score.subdimension_key}`,
+        score.id
+      ])
     );
 
     const evidenceRows = validated.scores.flatMap((score) =>

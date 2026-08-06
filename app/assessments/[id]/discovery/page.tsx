@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { PageHead } from "@/components/PageHead";
+import { Stepper } from "@/components/Stepper";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { discoveryQuestionsFor, ALL_QUESTIONS } from "@/lib/smeat/questions";
 import { isStaleRun, STALE_RUN_MINUTES } from "@/lib/smeat/run-scoring";
+import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -52,15 +54,45 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
 
   const { data: company } = await supabase
     .from("companies")
-    .select("id,name")
+    .select("id,name,description")
     .eq("id", assessment.company_id)
     .single();
+
+  const [{ count: documentCount }, { count: scoreCount }, { count: actionCount }] =
+    await Promise.all([
+      supabase
+        .from("company_documents")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", assessment.company_id),
+      supabase
+        .from("assessment_scores")
+        .select("id", { count: "exact", head: true })
+        .eq("assessment_id", id),
+      supabase
+        .from("assessment_actions")
+        .select("id", { count: "exact", head: true })
+        .eq("assessment_id", id)
+    ]);
 
   const byQuestion = new Map((answers ?? []).map((answer) => [answer.question_id, answer]));
 
   const answered = (answers ?? []).filter((a) => a.status === "answered").length;
   const needsInput = (answers ?? []).filter((a) => a.status === "needs_input").length;
   const total = ALL_QUESTIONS.length;
+
+  const stages = computeStages({
+    assessmentId: assessment.id,
+    companyId: assessment.company_id,
+    hasDescription: Boolean(company?.description),
+    documentCount: documentCount ?? 0,
+    answeredCount: answered,
+    needsInputCount: needsInput,
+    scoreCount: scoreCount ?? 0,
+    editedCount: 0,
+    estimatedCount: 0,
+    actionCount: actionCount ?? 0,
+    status: assessment.status
+  });
 
   const stalled = latestRun?.status === "running" && isStaleRun(latestRun.created_at);
   const isRunning = latestRun?.status === "running" && !stalled;
@@ -91,6 +123,8 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
           </>
         }
       />
+
+      <Stepper stages={stages} current="discovery" />
 
       {/* Without this the page renders zeros and the run fails in the
           background, which looks exactly like nothing happening. */}
