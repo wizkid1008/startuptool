@@ -38,9 +38,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package-lock.json
-          git commit -m "Add package-lock.json so builds are reproducible
-
-Generated on a runner, since Node is not available on the development
-machine. Without it, CI and Render resolve dependencies fresh on every run and
-a transitive release can change the build with no commit behind it."
+          # Written with printf rather than a multi-line -m: an unindented
+          # continuation line closes the YAML block scalar and makes the whole
+          # workflow file unparseable.
+          printf '%s\n' \
+            "Add package-lock.json so builds are reproducible" \
+            "" \
+            "Generated on a runner, since Node is not available on the" \
+            "development machine. Without it, CI and Render resolve" \
+            "dependencies fresh on every run and a transitive release can" \
+            "change the build with no commit behind it." > /tmp/lockfile-msg
+          git commit -F /tmp/lockfile-msg
           git push
