@@ -139,9 +139,13 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
+    // `Record<string, never>` looks equivalent but asserts that every possible
+    // key maps to `never`, which fails supabase-js's schema constraint — the
+    // client then resolves every table to `never`. This is the shape
+    // `supabase gen types` emits for an empty section.
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 };
