@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm } from "@/components/ActionForm";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { AnswerPicker } from "@/components/AnswerPicker";
 import { PageHead } from "@/components/PageHead";
 import { Stepper } from "@/components/Stepper";
 import { SMEAT_DIMENSIONS } from "@/lib/smeat/model";
@@ -11,18 +12,6 @@ import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_PILL: Record<string, string> = {
-  answered: "pill good",
-  needs_input: "pill warn",
-  not_applicable: "pill ghost"
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  answered: "Answered",
-  needs_input: "Needs input",
-  not_applicable: "Not applicable"
-};
 
 export default async function DiscoveryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -259,69 +248,27 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
                       const status = answer?.status ?? "needs_input";
 
                       return (
-                        <div className="qblock" key={question.id}>
-                          <div className="between">
-                            <strong className="small">{question.prompt}</strong>
-                            <span className={STATUS_PILL[status] ?? "pill"}>
-                              {STATUS_LABEL[status] ?? status}
-                            </span>
-                          </div>
-
+                        <div key={question.id}>
+                          <AnswerPicker
+                            assessmentId={assessment.id}
+                            dimensionKey={dimension.key}
+                            subdimensionKey={subdimension.key}
+                            questionId={question.id}
+                            prompt={question.prompt}
+                            listenFor={question.listenFor}
+                            initialLevel={answer?.selected_level ?? null}
+                            initialAnswer={answer?.answer ?? ""}
+                            suggestedLevel={answer?.suggested_level ?? null}
+                            status={status}
+                          />
                           {answer?.evidence ? (
-                            <p className="hint">
+                            <p className="hint" style={{ margin: "-6px 0 14px" }}>
                               <b>{answer.source === "ai" ? "Agent" : "You"}:</b> {answer.evidence}
                               {answer.confidence !== null && answer.confidence !== undefined
                                 ? ` · confidence ${Math.round(answer.confidence * 100)}%`
                                 : ""}
                             </p>
                           ) : null}
-
-                          <form method="post" action="/api/answers">
-                            <input type="hidden" name="assessment_id" value={assessment.id} />
-                            <input type="hidden" name="dimension_key" value={dimension.key} />
-                            <input
-                              type="hidden"
-                              name="subdimension_key"
-                              value={subdimension.key}
-                            />
-                            <input type="hidden" name="question_id" value={question.id} />
-                            <input type="hidden" name="status" value="needs_input" />
-
-                            {/* The cues double as the answer. Most answers are
-                                really "they're a 3" — making that selectable
-                                keeps the structure that prose would lose. */}
-                            <div className="cuepick">
-                              {[1, 2, 3, 4].map((level) => (
-                                <label key={level}>
-                                  <input
-                                    type="radio"
-                                    name="selected_level"
-                                    value={level}
-                                    defaultChecked={answer?.selected_level === level}
-                                  />
-                                  <span className="lvlnum">{level}</span>
-                                  <span>
-                                    {question.listenFor[level as 1 | 2 | 3 | 4]}
-                                    {answer?.suggested_level === level ? (
-                                      <span className="pill ghost" style={{ marginLeft: 6 }}>
-                                        Agent&rsquo;s read
-                                      </span>
-                                    ) : null}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-
-                            <textarea
-                              name="answer"
-                              defaultValue={answer?.answer ?? ""}
-                              placeholder="Add detail, or leave blank — selecting a level above is enough"
-                              style={{ minHeight: 56 }}
-                            />
-                            <button className="secondary small" type="submit">
-                              Save answer
-                            </button>
-                          </form>
                         </div>
                       );
                     })}
@@ -335,3 +282,4 @@ export default async function DiscoveryPage({ params }: { params: Promise<{ id: 
     </>
   );
 }
+

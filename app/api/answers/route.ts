@@ -54,7 +54,14 @@ export async function POST(request: Request) {
     { onConflict: "assessment_id,question_id" }
   );
 
+  // The picker saves in the background via fetch; a plain form post still
+  // redirects, so the page works with JavaScript disabled.
+  const wantsJson = request.headers.get("accept")?.includes("application/json");
+
   if (error) {
+    if (wantsJson) {
+      return Response.json({ ok: false, error: error.message }, { status: 500 });
+    }
     return failurePage({
       title: "That answer could not be saved.",
       detail: error.message,
@@ -62,6 +69,10 @@ export async function POST(request: Request) {
       backLabel: "Back to discovery",
       status: 500
     });
+  }
+
+  if (wantsJson) {
+    return Response.json({ ok: true });
   }
 
   return seeOther(`/assessments/${parsed.data.assessment_id}/discovery`, request);
