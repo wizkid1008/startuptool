@@ -40,6 +40,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="content">
             <div className="wide" style={{ maxWidth: 900 }}>
               {children}
+              {/* Also shown signed out. "Which build is live?" is a question
+                  worth answering without having to log in first — including
+                  from outside the app entirely. */}
+              <BuildStamp />
             </div>
           </main>
         )}
