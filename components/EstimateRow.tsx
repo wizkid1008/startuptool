@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   costScale,
@@ -49,6 +50,7 @@ export function EstimateRow({
     estimate_confidence: confidence
   });
   const [save, setSave] = useState<SaveState>("idle");
+  const router = useRouter();
 
   async function persist(next: Record<string, number | null>) {
     setSave("saving");
@@ -69,8 +71,14 @@ export function EstimateRow({
         body
       });
       if (!response.ok) throw new Error("save failed");
+
       setSave("saved");
       setTimeout(() => setSave("idle"), 1500);
+
+      // priority_score is generated in Postgres, so the new value only exists
+      // server-side. Without this the row keeps showing "Set effort" and the
+      // quadrant counts stay stale even though the write succeeded.
+      router.refresh();
     } catch {
       setSave("error");
     }
