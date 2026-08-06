@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PageHead } from "@/components/PageHead";
 import { PriorityBoard } from "@/components/PriorityBoard";
 import { Stepper } from "@/components/Stepper";
-import { findSubdimension } from "@/lib/smeat/model";
+import { findSubdimension, SMEAT_DIMENSIONS } from "@/lib/smeat/model";
 import { formatDate } from "@/lib/smeat/presentation";
 import { computeStages } from "@/lib/smeat/stages";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -125,19 +125,50 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </span>
         </div>
 
+        {/* Adding lives here rather than inside the assessment panels — this
+            is the page about what to do, and an action buried behind a segment
+            selection and an accordion was hard to find again. */}
+        <form method="post" action="/api/actions" className="actionform card">
+          <input type="hidden" name="intent" value="create" />
+          <input type="hidden" name="assessment_id" value={assessment.id} />
+
+          <select name="assessment_score_id" required defaultValue="" aria-label="Subdimension">
+            <option value="" disabled>
+              Against which subdimension…
+            </option>
+            {SMEAT_DIMENSIONS.map((dimension) => {
+              const options = rows.filter((row) => row.dimension_key === dimension.key);
+              if (options.length === 0) return null;
+
+              return (
+                <optgroup key={dimension.key} label={dimension.label}>
+                  {options.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {findSubdimension(row.dimension_key, row.subdimension_key)?.label ??
+                        row.subdimension_key}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            })}
+          </select>
+
+          <input name="title" placeholder="What needs doing" required />
+          <input name="owner" placeholder="Owner" />
+          <input name="due_date" type="date" aria-label="Due date" />
+          <button type="submit">Add action</button>
+        </form>
+
+        {rows.length === 0 ? (
+          <p className="hint" style={{ marginTop: 10 }}>
+            Actions attach to a subdimension, so the assessment has to be scored first.
+          </p>
+        ) : null}
+
         {list.length === 0 ? (
           <div className="empty">
             <strong>No actions yet.</strong>
-            <span>
-              Actions are added against a subdimension, from the assessment. They collect here.
-            </span>
-            <Link
-              className="btn small"
-              href={`/assessments/${assessment.id}`}
-              style={{ marginTop: 8 }}
-            >
-              Go to the assessment
-            </Link>
+            <span>Add the first one above. They group by status as they accumulate.</span>
           </div>
         ) : (
           <div className="stack">

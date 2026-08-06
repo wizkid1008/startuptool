@@ -63,13 +63,6 @@ const SOURCE_LABEL: Record<string, string> = {
   import: "Imported"
 };
 
-const ACTION_STATUS_LABEL: Record<string, string> = {
-  open: "Open",
-  in_progress: "In progress",
-  done: "Done",
-  dropped: "Dropped"
-};
-
 function heatClass(criticality: number | null) {
   if (criticality === null) return "heat-none";
   if (criticality >= 12) return "heat-4";
@@ -369,56 +362,24 @@ export function SegmentExplorer({
                     </div>
                   ) : null}
 
-                  <div className="questions">
-                    <span className="microlabel">Actions</span>
-                    {scoreActions.map((action) => (
-                      <div className="actionrow" key={action.id}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 600 }}>{action.title}</div>
-                          <div className="hint">
-                            {[action.owner, action.due_date ? `due ${action.due_date}` : null]
-                              .filter(Boolean)
-                              .join(" · ") || "No owner"}
-                          </div>
-                        </div>
-                        <form method="post" action="/api/actions" className="row">
-                          <input type="hidden" name="intent" value="update" />
-                          <input type="hidden" name="action_id" value={action.id} />
-                          <select name="status" defaultValue={action.status}>
-                            {Object.entries(ACTION_STATUS_LABEL).map(([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ))}
-                          </select>
-                          <button className="secondary small" type="submit">
-                            Set
-                          </button>
-                        </form>
-                        <form method="post" action="/api/actions">
-                          <input type="hidden" name="intent" value="delete" />
-                          <input type="hidden" name="action_id" value={action.id} />
-                          <button className="quiet small" type="submit" aria-label="Delete">
-                            ×
-                          </button>
-                        </form>
-                      </div>
-                    ))}
-
-                    <form method="post" action="/api/actions" className="actionform">
-                      <input type="hidden" name="intent" value="create" />
-                      <input type="hidden" name="assessment_id" value={assessmentId} />
-                      <input type="hidden" name="assessment_score_id" value={score.id} />
-                      <input type="hidden" name="dimension_key" value={dimension.key} />
-                      <input type="hidden" name="subdimension_key" value={subdimension.key} />
-                      <input name="title" placeholder="What needs doing" required />
-                      <input name="owner" placeholder="Owner" />
-                      <input name="due_date" type="date" aria-label="Due date" />
-                      <button className="secondary" type="submit">
-                        Add
-                      </button>
-                    </form>
-                  </div>
+                  {scoreActions.length > 0 ? (
+                    <div className="questions">
+                      <span className="microlabel">
+                        Actions · {scoreActions.length}
+                      </span>
+                      <ul className="small muted" style={{ margin: "6px 0 0", paddingLeft: 16 }}>
+                        {scoreActions.map((action) => (
+                          <li key={action.id}>
+                            {action.title}
+                            {action.owner ? ` — ${action.owner}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="hint" style={{ marginTop: 6 }}>
+                        Added and managed on the Plan page.
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </details>
             );

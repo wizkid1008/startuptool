@@ -47,11 +47,27 @@ export async function POST(request: Request) {
   // Row-level security scopes every one of these to the caller's organization,
   // so no separate ownership check is needed.
   if (parsed.data.intent === "create") {
+    // The Plan page picks a subdimension by score id alone. Derive the keys
+    // from it so they survive a re-score, which nulls assessment_score_id.
+    let dimensionKey = parsed.data.dimension_key ?? null;
+    let subdimensionKey = parsed.data.subdimension_key ?? null;
+
+    if (parsed.data.assessment_score_id && (!dimensionKey || !subdimensionKey)) {
+      const { data: score } = await supabase
+        .from("assessment_scores")
+        .select("dimension_key,subdimension_key")
+        .eq("id", parsed.data.assessment_score_id)
+        .single();
+
+      dimensionKey = score?.dimension_key ?? null;
+      subdimensionKey = score?.subdimension_key ?? null;
+    }
+
     const { error } = await supabase.from("assessment_actions").insert({
       assessment_id: parsed.data.assessment_id,
       assessment_score_id: parsed.data.assessment_score_id ?? null,
-      dimension_key: parsed.data.dimension_key ?? null,
-      subdimension_key: parsed.data.subdimension_key ?? null,
+      dimension_key: dimensionKey,
+      subdimension_key: subdimensionKey,
       title: parsed.data.title,
       owner: parsed.data.owner || null,
       due_date: parsed.data.due_date || null
@@ -67,7 +83,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return seeOther(`/assessments/${parsed.data.assessment_id}`, request);
+    return seeOther(`/assessments/${parsed.data.assessment_id}/plan`, request);
   }
 
   const table = supabase.from("assessment_actions");
@@ -94,5 +110,5 @@ export async function POST(request: Request) {
     });
   }
 
-  return seeOther(`/assessments/${data.assessment_id}`, request);
+  return seeOther(`/assessments/${data.assessment_id}/plan`, request);
 }
